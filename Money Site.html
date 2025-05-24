@@ -1,0 +1,2329 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Money Site</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      /* Global reset & base font */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        font-family: "Segoe UI", Arial, sans-serif;
+      }
+      /* Make body positioned so absolute elements can be placed relative to it */
+
+      body {
+        position: relative;
+        font-size: 8px;
+        background: linear-gradient(
+          120deg,
+          rgba(255, 218, 185, 0.8),
+          rgba(209, 233, 255, 0.9)
+        );
+        backdrop-filter: blur(20px);
+      }
+
+      #dashboardWrapper {
+        position: relative;
+        height: 100vh; /* Keeps the background full-height but NOT growing with content */
+        width: 100vw;
+        overflow: hidden; /* Optional: prevents scrollbars from accidental overflow */
+      }
+      /* Frosted floating rectangle behind tiles, in front of background */
+      #frostedRectangle {
+        position: absolute;
+        top: 3vh;
+        left: 4vw;
+        right: 4vw;
+        bottom: 3vh;
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 30px;
+        z-index: 1;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      }
+      /* Fixed Sidebar */
+      #sidebar {
+        position: fixed;
+        top: 3vh;
+        left: 4vw;
+        bottom: 3vh;
+        width: 10vw;
+        background: rgba(255, 255, 255, 0.35);
+        border: 1px solid rgba(148, 147, 147, 0.3);
+        border-radius: 30px;
+        padding: 20px;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+      }
+      #sidebar ul {
+        list-style-type: none;
+        padding: 0;
+      }
+      #sidebar ul li {
+        margin-bottom: 10px;
+        cursor: pointer;
+        font-size: 1rem;
+        text-transform: uppercase;
+        font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+      }
+      #sidebar ul li.active {
+        color: #2193b0;
+      }
+      /* Date box styling inside sidebar */
+      .date-box {
+        margin-top: auto;
+        padding-top: 10px;
+        border-top: 1px solid rgba(148, 147, 147, 0.3);
+      }
+      .date-box label {
+        font-size: 0.8rem;
+        font-weight: bold;
+        color: #29292c;
+        margin-bottom: 4px;
+        display: block;
+      }
+      /* Use type=date so only the day is shown */
+      .date-box input {
+        width: 100%;
+        padding: 4px;
+        font-size: 0.8rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      /* New Save HTML Button */
+      #saveHTMLBtn {
+        margin-top: 10px;
+        padding: 4px;
+        background-color: #6dd5ed;
+        color: #050000;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        font-size: 0.8rem;
+      }
+      #saveHTMLBtn:hover {
+        background-color: #2193b0;
+        transform: scale(1.02);
+      }
+      /* Main content area shifted right */
+
+      #mainContent {
+        position: absolute;
+        top: 3vh;
+        left: 15vw;
+        right: 4vw;
+        bottom: 3vh;
+        z-index: 2;
+        overflow-y: auto;
+        padding: 0vh 1.5vw;
+      }
+      /* Centered title spanning both columns */
+      .title-tile {
+        display: block;
+        text-align: center;
+        color: #46464a;
+        text-transform: uppercase;
+        font-size: 1.2rem;
+        font-weight: bold;
+        letter-spacing: 1px;
+        margin: 2vh 6vw 0vh 0vw;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 16px;
+        box-shadow: 0 6px 6px rgba(0, 0, 0, 0.53);
+        backdrop-filter: blur(12px);
+        padding: 10px 20px;
+      }
+      /* Two-column layout for the dashboard content */
+      .content-container {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin-top: 8px;
+        width: 100%;
+        flex-wrap: wrap;
+        max-width: 100%;
+      }
+      .left-column,
+      .right-column {
+        flex: 1 1 320px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 0; /* Prevent overflow when shrinking */
+        width: 100%;
+      }
+      /* Tile styling */
+      .tile {
+        width: auto; /* Let tile fill the parent column */
+        max-width: 460px; /* Prevent from being TOO wide on huge screens */
+
+        flex: 1 1 100px; /* Helps tiles grow/shrink within row/column */
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(12px);
+        padding: 1vw 1vw; /* Scales with window width */
+        margin-bottom: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 3;
+      }
+      @media (max-width: 1000px) {
+        .content-container {
+          flex-direction: column;
+          gap: 18px;
+        }
+        .left-column,
+        .right-column {
+          width: 100%;
+          min-width: 0;
+          flex: none;
+        }
+      }
+      /* Responsive: make sidebar disappear or collapse */
+      @media (max-width: 700px) {
+        #sidebar {
+          display: none !important;
+        }
+        #mainContent {
+          margin-left: 0 !important;
+          padding: 2vw 2vw !important;
+        }
+        .title-tile {
+          width: 100vw !important;
+          max-width: 100vw !important;
+          font-size: 1rem;
+          margin: 12px 0 8px 0;
+          padding: 8px 4px;
+        }
+        .tile {
+          width: fit-content; /* Only as wide as content+padding */
+          max-width: 98vw;
+          font-size: 0.9em;
+          padding: 2vw 3vw;
+          align-self: center;
+        }
+        .content-container,
+        .row {
+          flex-direction: column !important;
+          align-items: flex-start; /* So children don't stretch to 100% */
+          gap: 8px !important;
+        }
+        #mainContent {
+          position: relative !important; /* Go back to flow positioning */
+          left: 0 !important;
+          top: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100vw !important; /* Take up full window */
+          min-width: 0 !important;
+          height: 100vh !important; /* Or use min-height: 100vh; */
+          margin: 0 !important;
+          padding: 2vw 2vw !important; /* Or adjust as desired for inner space */
+          overflow-y: auto !important; /* Allow scrolling INSIDE main content if needed */
+          box-sizing: border-box;
+          /* Optional: background: rgba(...) if you want a mobile-only bg */
+        }
+        #frostedRectangle {
+          /* Also reset position if necessary */
+          left: 0 !important;
+          top: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          border-radius: 0 !important; /* Square edges for mobile if preferred */
+        }
+      }
+      /* Responsive tables for mobile */
+      .table-container {
+        width: 100%;
+        overflow-x: auto;
+      }
+      .chart-tile {
+        align-items: flex-start;
+      }
+      .chart-tile h3 {
+        width: 100%;
+        text-align: center;
+      }
+      /* New styling for tile titles */
+      .tile h3 {
+        font-size: clamp(0.9rem, 2vw, 1.2rem); /* Responsive font size */
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #65656c;
+        margin-bottom: 0.1rem;
+        text-align: center;
+      }
+      .tile h3::after {
+        content: "";
+        display: block;
+        width: 100%;
+        height: 1px;
+        margin: 0 auto 0;
+        background: linear-gradient(90deg, #2193b0, #e4e6f8);
+      }
+      /* Fixed width for Budget tile */
+      .tile.budget-tile {
+        width: 220px;
+      }
+      /* Ensure fixed table layout and define column widths */
+      .tile.budget-tile table {
+        table-layout: fixed;
+        width: 100%;
+      }
+      .tile.budget-tile table th:nth-child(1),
+      .tile.budget-tile table td:nth-child(1) {
+        width: 40%;
+      }
+      .tile.budget-tile table th:nth-child(2),
+      .tile.budget-tile table td:nth-child(2) {
+        width: 40%;
+      }
+      .tile.budget-tile table th:nth-child(3),
+      .tile.budget-tile table td:nth-child(3) {
+        width: 20%;
+      }
+      /* Global Headings (for other parts) */
+      h3 {
+        text-align: center;
+        color: #050000;
+        margin-bottom: 6px;
+        font-size: 0.8rem;
+      }
+      /* Table styling */
+      table {
+        border-collapse: collapse;
+        margin: 0 auto 4px auto;
+        width: auto;
+      }
+      table td,
+      table th {
+        border: 1px solid rgba(255, 255, 255, 0.02);
+        padding: 3px;
+        text-align: center;
+        color: #050000;
+        font-size: 8px;
+      }
+      th {
+        background-color: rgba(255, 255, 255, 0.15);
+      }
+      label {
+        display: block;
+        margin-bottom: 0;
+        font-weight: bold;
+        color: #29292c;
+        font-size: 0.65rem;
+      }
+      /* Input groups (for smaller text + $/% sign) */
+      .input-group {
+        display: flex;
+        align-items: center;
+      }
+      .input-group span {
+        margin-left: 2px;
+        font-size: 8px;
+        color: #050000;
+      }
+      .input-group input {
+        width: 50px;
+        padding: 1px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 8px;
+        text-align: right;
+      }
+      /* Plain input used for "days" etc. */
+      .plain-input {
+        width: 60px;
+        padding: 2px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 8px;
+        text-align: right;
+      }
+      /* Button style */
+      button {
+        width: 100%;
+        padding: 4px;
+        background-color: #6dd5ed;
+        color: #050000;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        font-size: 8px;
+        margin-top: 4px;
+      }
+      button:hover {
+        background-color: #2193b0;
+        transform: scale(1.02);
+      }
+      /* Chart containers */
+      .chart-container.barChart {
+        width: 300px;
+        height: 140px;
+        margin-top: 4px;
+      }
+      .chart-container.pieChart {
+        width: 300px;
+        margin-top: 4px;
+        height: 290px;
+      }
+      #liquidOutput {
+        font-size: 0.9rem;
+        text-align: center;
+        margin-top: 2px;
+        color: #050000;
+      }
+      .row {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        justify-content: center;
+        width: auto;
+        flex-wrap: wrap; /* Allow stacking on small screens */
+        padding: 1em 2em;
+      }
+      /* New class for vertical stacking of tiles */
+      .column-stack {
+        display: flex;
+        width: auto;
+        flex-direction: column;
+        gap: 12px;
+      }
+      /* Future Expenses: two side-by-side columns */
+      .two-column-expenses {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        width: 100%;
+      }
+      .expenses-column {
+        flex: 1;
+      }
+      .expenses-column table {
+        width: 100%;
+      }
+      #budgetCheckTile,
+      #budgetCheckTile .table-container {
+        width: 100%;
+        min-width: 0;
+        overflow-x: auto;
+      }
+      /*─── Budget Check table overrides ───*/
+      #budgetCheckTable {
+        /* force your fixed-width layout & full-width table */
+        table-layout: flex;
+        width: 50%;
+        margin: 0 0 4px 0;
+      }
+
+      /* Center-align only this table’s cells & headers */
+      #budgetCheckTable th,
+      #budgetCheckTable td {
+        text-align: center;
+        padding: 4px 8px; /* optional for breathing room */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* explicitly size each column via colgroup, or via nth-child: */
+      #budgetCheckTable col:nth-child(1) {
+        width: 25%;
+      } /* Date   */
+      #budgetCheckTable col:nth-child(2) {
+        width: 25%;
+      } /* Budget */
+      #budgetCheckTable col:nth-child(3) {
+        width: 25%;
+      } /* Spent  */
+      #budgetCheckTable col:nth-child(4) {
+        width: 25%;
+      } /* Notes  */
+
+      /*─── Liquidation Log table overrides ───*/
+      #liquidationLogTable {
+        /* honor our widths and span the container */
+        table-layout: fixed;
+        width: 100%;
+        margin: 0 0 4px 0;
+      }
+
+      #liquidationLogTable th,
+      #liquidationLogTable td {
+        /* left-align all text, truncate overflow */
+        text-align: center;
+        padding: 4px 8px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* assign each of the seven columns a % of the total width */
+      #liquidationLogTable th:nth-child(1),
+      #liquidationLogTable td:nth-child(1) {
+        width: 15%;
+      } /* Liquidation Number */
+      #liquidationLogTable th:nth-child(2),
+      #liquidationLogTable td:nth-child(2) {
+        width: 15%;
+      } /* Total Amount       */
+      #liquidationLogTable th:nth-child(3),
+      #liquidationLogTable td:nth-child(3) {
+        width: 10%;
+      } /* Date               */
+      #liquidationLogTable th:nth-child(4),
+      #liquidationLogTable td:nth-child(4) {
+        width: 20%;
+      } /* Transfer           */
+      #liquidationLogTable th:nth-child(5),
+      #liquidationLogTable td:nth-child(5) {
+        width: 10%;
+      } /* Crypto             */
+      #liquidationLogTable th:nth-child(6),
+      #liquidationLogTable td:nth-child(6) {
+        width: 15%;
+      } /* Fidelity           */
+      #liquidationLogTable th:nth-child(7),
+      #liquidationLogTable td:nth-child(7) {
+        width: 15%;
+      } /* Wealthfront        */
+    </style>
+  </head>
+  <body>
+    <div id="dashboardWrapper">
+      <!-- Frosted floating rectangle -->
+      <div id="frostedRectangle"></div>
+      <!-- Fixed Sidebar Navigation -->
+      <nav id="sidebar">
+        <ul>
+          <li id="navWeeklyCheck" class="active">Weekly Check</li>
+          <li id="navPaycheckOverview">Paycheck Overview</li>
+          <li id="navLiquidation">Liquidation</li>
+          <li id="navInvesting">Investing</li>
+        </ul>
+        <!-- Date Box at the bottom of the sidebar -->
+        <div class="date-box">
+          <label for="manualDate">Date</label>
+          <input type="date" id="manualDate" placeholder="yyyy/mm/dd" />
+        </div>
+        <!-- New Save HTML Button -->
+        <button id="saveHTMLBtn" onclick="saveHTML()">Save HTML</button>
+      </nav>
+      <!-- Main Content Area -->
+      <div id="mainContent">
+        <!-- Weekly Check Section -->
+        <div id="weeklyCheckSection">
+          <div class="title-tile">Weekly Check Dashboard</div>
+          <div class="content-container">
+            <!-- Left Column: All Weekly Check tiles -->
+            <div class="left-column">
+              <!-- 1) Row with Cash & Debt -->
+              <div class="row">
+                <!-- Cash Tile -->
+                <div class="tile">
+                  <h3>Cash</h3>
+                  <table>
+                    <tr>
+                      <th><label for="checking">Checking</label></th>
+                      <th><label for="savings">Savings</label></th>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="input-group">
+                          <span>$</span>
+                          <input
+                            type="number"
+                            id="checking"
+                            placeholder="Amount"
+                          />
+                        </div>
+                      </td>
+                      <td>
+                        <div class="input-group">
+                          <span>$</span>
+                          <input
+                            type="number"
+                            id="savings"
+                            placeholder="Amount"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <!-- Debt Tile -->
+                <div class="tile">
+                  <h3>Debt</h3>
+                  <table>
+                    <tr>
+                      <th><label for="card1">BoA</label></th>
+                      <th><label for="card2">Citi</label></th>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="input-group">
+                          <span>$</span>
+                          <input
+                            type="number"
+                            id="card1"
+                            placeholder="Balance"
+                          />
+                        </div>
+                      </td>
+                      <td>
+                        <div class="input-group">
+                          <span>$</span>
+                          <input
+                            type="number"
+                            id="card2"
+                            placeholder="Balance"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <!-- 2) Future Expenses Tile (two columns) -->
+              <div class="tile">
+                <h3>Future Expenses</h3>
+                <div class="two-column-expenses">
+                  <!-- Left column of expenses -->
+                  <div class="expenses-column">
+                    <table>
+                      <tr>
+                        <th>Expense</th>
+                        <th>Amount</th>
+                      </tr>
+                      <tr>
+                        <td>Rent</td>
+                        <td>
+                          <div class="input-group">
+                            <span>$</span>
+                            <input
+                              type="number"
+                              id="rent"
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Student Loan</td>
+                        <td>
+                          <div class="input-group">
+                            <span>$</span>
+                            <input
+                              type="number"
+                              id="studentLoan"
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Utilities</td>
+                        <td>
+                          <div class="input-group">
+                            <span>$</span>
+                            <input
+                              type="number"
+                              id="utilities"
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Hello Fresh</td>
+                        <td>
+                          <div class="input-group">
+                            <span>$</span>
+                            <input
+                              type="number"
+                              id="helloFresh"
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Car Insurance</td>
+                        <td>
+                          <div class="input-group">
+                            <span>$</span>
+                            <input
+                              type="number"
+                              id="carInsurance"
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+                  <!-- Right column of expenses -->
+                  <div class="expenses-column">
+                    <table>
+                      <tr>
+                        <th>Expense</th>
+                        <th>Amount</th>
+                      </tr>
+                      <tr>
+                        <td>Gas</td>
+                        <td>
+                          <div class="input-group">
+                            <span>$</span>
+                            <input
+                              type="number"
+                              id="gas"
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Renters Ins.</td>
+                        <td>
+                          <div class="input-group">
+                            <span>$</span>
+                            <input
+                              type="number"
+                              id="rentersIns"
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Haircut</td>
+                        <td>
+                          <div class="input-group">
+                            <span>$</span>
+                            <input
+                              type="number"
+                              id="haircut"
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Subscrip.</td>
+                        <td>
+                          <div class="input-group">
+                            <span>$</span>
+                            <input
+                              type="number"
+                              id="subscrip"
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <!-- 3) Row with Budget and Min Balance side by side -->
+              <div class="row">
+                <!-- Budget Tile -->
+                <div class="tile budget-tile">
+                  <h3>Budget</h3>
+                  <table>
+                    <tr>
+                      <th><label for="dailyBudget">Daily</label></th>
+                      <th><label for="daysToPaycheck">Days</label></th>
+                      <th>Total</th>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="input-group">
+                          <span>$</span>
+                          <input
+                            type="number"
+                            id="dailyBudget"
+                            value="18"
+                            placeholder="Daily"
+                          />
+                        </div>
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          id="daysToPaycheck"
+                          class="plain-input"
+                          placeholder="Days"
+                        />
+                      </td>
+                      <td id="totalBudget">$0</td>
+                    </tr>
+                  </table>
+                </div>
+                <!-- Min Balance Tile -->
+                <div class="tile">
+                  <h3>Min Balance</h3>
+                  <table>
+                    <tr>
+                      <th><label for="minBalance">Required</label></th>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="input-group">
+                          <span>$</span>
+                          <input type="number" id="minBalance" value="3000" />
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <!-- 4a) Row with Liquid Capital -->
+              <div class="row">
+                <div class="tile">
+                  <h3>Liquid Capital</h3>
+                  <button id="calculateLiquidBtn">Calculate</button>
+                  <h2 id="liquidOutput">$0.00</h2>
+                </div>
+              </div>
+              <!-- 4b) Row with Budget Check -->
+              <div class="row">
+                <div class="tile" id="budgetCheckTile" style="width: 50%">
+                  <h3>Budget Check</h3>
+                  <div
+                    class="table-container"
+                    style="height: 70px; overflow-y: auto; width: 50%"
+                  >
+                    <table id="budgetCheckTable">
+                      <colgroup>
+                        <col style="width: 80px" />
+                        <!-- Date -->
+                        <col style="width: 90px" />
+                        <!-- Budget -->
+                        <col style="width: 100px" />
+                        <!-- Spent -->
+                        <col style="width: 100px" />
+                        <!-- Notes -->
+                      </colgroup>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Budget</th>
+                          <th>Spent</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <!-- Rows will be populated here -->
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="row" style="margin-top: 8px; gap: 4px">
+                    <input
+                      type="date"
+                      id="budgetCheckDate"
+                      placeholder="Date"
+                      style="font-size: 8px"
+                    />
+                    <input
+                      type="number"
+                      id="budgetCheckBudget"
+                      placeholder="Budget"
+                      style="font-size: 8px"
+                    />
+                    <input
+                      type="number"
+                      id="budgetCheckSpent"
+                      placeholder="Spent"
+                      style="font-size: 8px"
+                    />
+                    <input
+                      type="text"
+                      id="budgetCheckNotes"
+                      placeholder="Notes"
+                      style="font-size: 8px"
+                    />
+                    <button id="addBudgetCheckEntryBtn" style="font-size: 8px">
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Right Column: Charts -->
+            <div class="right-column">
+              <div class="tile chart-tile">
+                <h3>Breakdown - Bar</h3>
+                <div class="chart-container barChart">
+                  <canvas id="barChart"></canvas>
+                </div>
+              </div>
+              <div class="tile chart-tile">
+                <h3>Breakdown - Pie</h3>
+                <div class="chart-container pieChart">
+                  <canvas id="pieChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paycheck Overview Section (unchanged) -->
+        <div id="paycheckOverviewSection" style="display: none">
+          <div class="title-tile">Paycheck Overview</div>
+          <div class="content-container">
+            <!-- Left Column: Updated Tiles -->
+            <div class="left-column">
+              <!-- Pay Tile -->
+              <div class="row">
+                <div class="tile" style="width: 200px">
+                  <h3>Pay</h3>
+                  <table>
+                    <tr>
+                      <th>Item</th>
+                      <th>Paycheck</th>
+                    </tr>
+                    <tr>
+                      <td>Paycheck</td>
+                      <td>
+                        <div class="input-group">
+                          <span>$</span>
+                          <input
+                            type="number"
+                            id="overviewPaycheck"
+                            value="2574"
+                            placeholder="Paycheck"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <!-- Required Expense and Subscriptions/Misc. Budget -->
+              <div class="row">
+                <div class="tile" style="width: 200px">
+                  <h3>Required Expense</h3>
+                  <table>
+                    <tr>
+                      <th>Item</th>
+                      <th>Paycheck</th>
+                    </tr>
+                    <tr>
+                      <td>Student Loans</td>
+                      <td>
+                        <div class="input-group">
+                          <span>$</span>
+                          <input
+                            type="number"
+                            id="overviewStudentLoans"
+                            value="200"
+                            placeholder="Amount"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Rent</td>
+                      <td>
+                        <div class="input-group">
+                          <span>$</span>
+                          <input
+                            type="number"
+                            id="overviewRent"
+                            value="400"
+                            placeholder="Amount"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Hello Fresh</td>
+                      <td>
+                        <div class="input-group">
+                          <span>$</span>
+                          <input
+                            type="number"
+                            id="overviewHelloFresh"
+                            value="110"
+                            placeholder="Amount"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Utilities</td>
+                      <td>
+                        <div class="input-group">
+                          <span>$</span>
+                          <input
+                            type="number"
+                            id="overviewUtilities"
+                            value="50"
+                            placeholder="Amount"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Car Insurance</td>
+                      <td>
+                        <div class="input-group">
+                          <span>$</span>
+                          <input
+                            type="number"
+                            id="overviewCarInsurance"
+                            value="42"
+                            placeholder="Amount"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Gas</td>
+                      <td>
+                        <div class="input-group">
+                          <span>$</span>
+                          <input
+                            type="number"
+                            id="overviewGas"
+                            value="15"
+                            placeholder="Amount"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Tolls</td>
+                      <td>
+                        <div class="input-group">
+                          <span>$</span>
+                          <input
+                            type="number"
+                            id="overviewTolls"
+                            value="10"
+                            placeholder="Amount"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Renters Insurance</td>
+                      <td>
+                        <div class="input-group">
+                          <span>$</span>
+                          <input
+                            type="number"
+                            id="overviewRentersIns"
+                            value="6"
+                            placeholder="Amount"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Percentage</td>
+                      <td id="overviewRequiredExpensePercentage">0%</td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="column-stack">
+                  <div class="tile" style="width: 200px">
+                    <h3>Subscriptions</h3>
+                    <table>
+                      <tr>
+                        <th>Item</th>
+                        <th>Paycheck</th>
+                      </tr>
+                      <tr>
+                        <td>Apple</td>
+                        <td>
+                          <div class="input-group">
+                            <span>$</span>
+                            <input
+                              type="number"
+                              id="overviewApple"
+                              value="21"
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>ChatGPT</td>
+                        <td>
+                          <div class="input-group">
+                            <span>$</span>
+                            <input
+                              type="number"
+                              id="overviewChatGPT"
+                              value="20"
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>VPN</td>
+                        <td>
+                          <div class="input-group">
+                            <span>$</span>
+                            <input
+                              type="number"
+                              id="overviewVPN"
+                              value="20"
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Farmers Dog</td>
+                        <td>
+                          <div class="input-group">
+                            <span>$</span>
+                            <input
+                              type="number"
+                              id="overviewFarmersDog"
+                              value="112"
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Percentage</td>
+                        <td id="overviewSubscriptionsPercentage">0%</td>
+                      </tr>
+                    </table>
+                  </div>
+                  <div class="tile" style="width: 200px">
+                    <h3>Misc. Budget</h3>
+                    <table>
+                      <tr>
+                        <th>Item</th>
+                        <th>Paycheck</th>
+                      </tr>
+                      <tr>
+                        <td>Budget - Total</td>
+                        <td id="overviewBudgetTotal">$0</td>
+                      </tr>
+                      <tr>
+                        <td>Budget - Per Day</td>
+                        <td>
+                          <div class="input-group">
+                            <span>$</span>
+                            <input
+                              type="number"
+                              id="overviewBudgetPerDay"
+                              value="18"
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Percentage</td>
+                        <td id="overviewMiscBudgetPercentage">0%</td>
+                      </tr>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <!-- Liquid Tile -->
+              <div class="row">
+                <div class="tile" style="width: 200px">
+                  <h3>Liquid</h3>
+                  <button id="calculateLiquidOverviewBtn">Calculate</button>
+                  <table>
+                    <tr>
+                      <th>Item</th>
+                      <th>Paycheck</th>
+                    </tr>
+                    <tr>
+                      <td>Liquidation</td>
+                      <td id="overviewLiquidation">$0</td>
+                    </tr>
+                    <tr>
+                      <td>Percentage</td>
+                      <td id="overviewLiquidPercentage">0%</td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <!-- Right Column: Charts -->
+            <div class="right-column">
+              <div class="tile chart-tile">
+                <h3>Breakdown - Bar</h3>
+                <div class="chart-container barChart">
+                  <canvas id="barChartOverview"></canvas>
+                </div>
+              </div>
+              <div class="tile chart-tile">
+                <h3>Breakdown - Pie</h3>
+                <div class="chart-container pieChart">
+                  <canvas id="pieChartOverview"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Liquidation Section -->
+        <div id="liquidationSection" style="display: none">
+          <div class="title-tile">Liquidation</div>
+          <div class="content-container">
+            <!-- Left Column: Liquid Amount & Macro Allocations -->
+            <div class="left-column">
+              <!-- Liquid Amount Tile -->
+              <div class="tile">
+                <h3>Liquid Amount</h3>
+                <div class="input-group">
+                  <span>$</span>
+                  <input
+                    type="number"
+                    id="investLiquidAmount"
+                    placeholder="Amount"
+                  />
+                </div>
+              </div>
+              <!-- Macro Allocations Tile -->
+              <div class="tile" style="width: 100%">
+                <h3>Macro Allocations</h3>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Section</th>
+                      <th>Liquid %</th>
+                      <th>Amount</th>
+                      <th>Paycheck %</th>
+                      <th>Purpose</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Roth</td>
+                      <td>
+                        <div class="input-group">
+                          <input
+                            type="number"
+                            id="investRothPercent"
+                            step="0.1"
+                            value="0"
+                          />
+                          <span>%</span>
+                        </div>
+                      </td>
+                      <td id="investRothAmount">$0</td>
+                      <td id="investRothPaycheckPercent">0%</td>
+                      <td>Retirement</td>
+                    </tr>
+                    <tr>
+                      <td>Misc.</td>
+                      <td>
+                        <div class="input-group">
+                          <input
+                            type="number"
+                            id="investFunPercent"
+                            step="0.1"
+                            value="0"
+                          />
+                          <span>%</span>
+                        </div>
+                      </td>
+                      <td id="investFunAmount">$0</td>
+                      <td id="investFunPaycheckPercent">0%</td>
+                      <td>Misc.</td>
+                    </tr>
+                    <tr>
+                      <td>Planned Expense</td>
+                      <td>
+                        <div class="input-group">
+                          <input
+                            type="number"
+                            id="investPlannedPercent"
+                            step="0.1"
+                            value="70"
+                          />
+                          <span>%</span>
+                        </div>
+                      </td>
+                      <td id="investPlannedAmount">$0</td>
+                      <td id="investPlannedPaycheckPercent">0%</td>
+                      <td>Predictable Expense</td>
+                    </tr>
+                    <tr>
+                      <td>Cash</td>
+                      <td>
+                        <div class="input-group">
+                          <input
+                            type="number"
+                            id="investCashPercent"
+                            step="0.1"
+                            value="0"
+                          />
+                          <span>%</span>
+                        </div>
+                      </td>
+                      <td id="investCashAmount">$0</td>
+                      <td id="investCashPaycheckPercent">0%</td>
+                      <td>Emergency Fund</td>
+                    </tr>
+                    <tr>
+                      <td>Wedding</td>
+                      <td>
+                        <div class="input-group">
+                          <input
+                            type="number"
+                            id="investWeddingPercent"
+                            step="0.1"
+                            value="0"
+                          />
+                          <span>%</span>
+                        </div>
+                      </td>
+                      <td id="investWeddingAmount">$0</td>
+                      <td id="investWeddingPaycheckPercent">0%</td>
+                      <td>Wedding</td>
+                    </tr>
+                    <tr>
+                      <td>Down Payment</td>
+                      <td>
+                        <div class="input-group">
+                          <input
+                            type="number"
+                            id="investDownPercent"
+                            step="0.1"
+                            value="0"
+                          />
+                          <span>%</span>
+                        </div>
+                      </td>
+                      <td id="investDownAmount">$0</td>
+                      <td id="investDownPaycheckPercent">0%</td>
+                      <td>House</td>
+                    </tr>
+                    <tr>
+                      <td>Investing</td>
+                      <td>
+                        <div class="input-group">
+                          <input
+                            type="number"
+                            id="investInvestPercent"
+                            step="0.1"
+                            value="30"
+                          />
+                          <span>%</span>
+                        </div>
+                      </td>
+                      <td id="investInvestAmount">$0</td>
+                      <td id="investInvestPaycheckPercent">0%</td>
+                      <td>Investing</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td>Totals</td>
+                      <td id="investTotalsPercent">0%</td>
+                      <td id="investTotalsAmount">$0</td>
+                      <td id="investTotalsPaycheckPercent">0%</td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              <!-- Calculate button below left column tiles -->
+              <button id="calculateInvestBtn">Calculate</button>
+            </div>
+            <!-- Right Column: Macro Allocations Pie Chart -->
+            <div class="right-column">
+              <div class="tile">
+                <h3>Macro Allocations Pie Chart</h3>
+                <div
+                  class="chart-container pieChart"
+                  style="width: 300px; height: 290px"
+                >
+                  <canvas id="macroAllocationsPieChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Liquidation Log Tile -->
+          <div class="tile" style="max-width: 800px; width: 100%">
+            <h3>Liquidation Log</h3>
+            <div
+              class="table-container"
+              style="max-height: 150px; overflow-y: auto; width: 100%"
+            >
+              <table id="liquidationLogTable">
+                <thead>
+                  <tr>
+                    <th>Liquidation Number</th>
+                    <th>Total Liquidation Amount</th>
+                    <th>Date</th>
+                    <th>Liquidation Transfer</th>
+                    <th>Crypto</th>
+                    <th>Fidelity</th>
+                    <th>Wealthfront</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Rows will be populated here -->
+                </tbody>
+              </table>
+            </div>
+            <div class="row" style="margin-top: 8px; gap: 4px">
+              <input
+                type="text"
+                id="logLiquidationNumber"
+                placeholder="Liquidation Number"
+                style="font-size: 8px"
+              />
+              <input
+                type="number"
+                id="logTotalLiquidationAmount"
+                placeholder="Total Amount"
+                style="font-size: 8px"
+              />
+              <input
+                type="date"
+                id="logDate"
+                placeholder="Date"
+                style="font-size: 8px"
+              />
+              <input
+                type="text"
+                id="logLiquidationTransfer"
+                placeholder="Transfer"
+                style="font-size: 8px"
+              />
+              <input
+                type="text"
+                id="logCrypto"
+                placeholder="Crypto"
+                style="font-size: 8px"
+              />
+              <input
+                type="text"
+                id="logFidelity"
+                placeholder="Fidelity"
+                style="font-size: 8px"
+              />
+              <input
+                type="text"
+                id="logWealthfront"
+                placeholder="Wealthfront"
+                style="font-size: 8px"
+              />
+              <button id="addLiquidationLogBtn" style="font-size: 8px">
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Investing Section (blank for now) -->
+        <div id="investingSection" style="display: none">
+          <div class="title-tile">Investing</div>
+          <p style="text-align: center">Content coming soon...</p>
+        </div>
+      </div>
+    </div>
+    <script>
+      // Set your Google Apps Script endpoint URLs
+      //Google Script Version 10
+      const apiUrl =
+        "https://script.google.com/macros/s/AKfycbwsJSVyzFEFV1YVuy9p4Q1s0cFMlD9ULxc2MCl7dMYPVwqKQv9Y5VGtnBfRiigR_1yk/exec?sheetid=0";
+      const apiUrl2 =
+        "https://script.google.com/macros/s/AKfycbwsJSVyzFEFV1YVuy9p4Q1s0cFMlD9ULxc2MCl7dMYPVwqKQv9Y5VGtnBfRiigR_1yk/exec?sheetid=615354426";
+      const apiUrl3 =
+        "https://script.google.com/macros/s/AKfycbwsJSVyzFEFV1YVuy9p4Q1s0cFMlD9ULxc2MCl7dMYPVwqKQv9Y5VGtnBfRiigR_1yk/exec?sheetid=912270719";
+
+      // Navigation toggling
+      function showSection(sectionId) {
+        document.getElementById("weeklyCheckSection").style.display = "none";
+        document.getElementById("paycheckOverviewSection").style.display =
+          "none";
+        document.getElementById("liquidationSection").style.display = "none";
+        document.getElementById("investingSection").style.display = "none";
+
+        document.getElementById("navWeeklyCheck").classList.remove("active");
+        document
+          .getElementById("navPaycheckOverview")
+          .classList.remove("active");
+        document.getElementById("navLiquidation").classList.remove("active");
+        document.getElementById("navInvesting").classList.remove("active");
+
+        document.getElementById(sectionId).style.display = "block";
+        if (sectionId === "weeklyCheckSection") {
+          document.getElementById("navWeeklyCheck").classList.add("active");
+        } else if (sectionId === "paycheckOverviewSection") {
+          document
+            .getElementById("navPaycheckOverview")
+            .classList.add("active");
+        } else if (sectionId === "liquidationSection") {
+          document.getElementById("navLiquidation").classList.add("active");
+        } else if (sectionId === "investingSection") {
+          document.getElementById("navInvesting").classList.add("active");
+        }
+      }
+      document
+        .getElementById("navWeeklyCheck")
+        .addEventListener("click", () => showSection("weeklyCheckSection"));
+      document
+        .getElementById("navPaycheckOverview")
+        .addEventListener("click", () =>
+          showSection("paycheckOverviewSection")
+        );
+      document
+        .getElementById("navLiquidation")
+        .addEventListener("click", () => showSection("liquidationSection"));
+      document
+        .getElementById("navInvesting")
+        .addEventListener("click", () => showSection("investingSection"));
+
+      // Calculate total budget
+      function calculateBudget() {
+        const dailyBudget =
+          parseFloat(document.getElementById("dailyBudget").value) || 0;
+        const daysToPaycheck =
+          parseFloat(document.getElementById("daysToPaycheck").value) || 0;
+        const totalBudget = dailyBudget * daysToPaycheck;
+        document.getElementById("totalBudget").innerText =
+          "$" + totalBudget.toFixed(0);
+        return totalBudget;
+      }
+
+      // Get future expenses as an object
+      function getFutureExpenses() {
+        const rent = parseFloat(document.getElementById("rent").value) || 0;
+        const studentLoan =
+          parseFloat(document.getElementById("studentLoan").value) || 0;
+        const utilities =
+          parseFloat(document.getElementById("utilities").value) || 0;
+        const helloFresh =
+          parseFloat(document.getElementById("helloFresh").value) || 0;
+        const carInsurance =
+          parseFloat(document.getElementById("carInsurance").value) || 0;
+        const gas = parseFloat(document.getElementById("gas").value) || 0;
+        const rentersIns =
+          parseFloat(document.getElementById("rentersIns").value) || 0;
+        const haircut =
+          parseFloat(document.getElementById("haircut").value) || 0;
+        const subscrip =
+          parseFloat(document.getElementById("subscrip").value) || 0;
+        return {
+          rent,
+          studentLoan,
+          utilities,
+          helloFresh,
+          carInsurance,
+          gas,
+          rentersIns,
+          haircut,
+          subscrip,
+        };
+      }
+
+      // Calculate Liquid Capital (Weekly Check) - on button click
+      function calculateLiquid() {
+        const checking =
+          parseFloat(document.getElementById("checking").value) || 0;
+        const savings =
+          parseFloat(document.getElementById("savings").value) || 0;
+        const card1 = parseFloat(document.getElementById("card1").value) || 0;
+        const card2 = parseFloat(document.getElementById("card2").value) || 0;
+        const minBalance =
+          parseFloat(document.getElementById("minBalance").value) || 0;
+        const future = getFutureExpenses();
+        let futureExpenses = 0;
+        for (const key in future) {
+          futureExpenses += future[key];
+        }
+        const totalBudget = calculateBudget();
+        const liquid =
+          checking +
+          savings -
+          (card1 + card2 + futureExpenses + minBalance + totalBudget);
+        document.getElementById("liquidOutput").innerText =
+          "$" + liquid.toFixed(2);
+
+        // Update charts if needed
+        const barData = {
+          cash: checking + savings,
+          debt: card1 + card2,
+          expenses: futureExpenses + totalBudget,
+          liquid: Math.max(liquid, 0),
+        };
+        updateBarChart(barData);
+        const pieData = {
+          checking,
+          savings,
+          card1,
+          card2,
+          rent: future.rent,
+          studentLoan: future.studentLoan,
+          utilities: future.utilities,
+          helloFresh: future.helloFresh,
+          carInsurance: future.carInsurance,
+          gas: future.gas,
+          rentersIns: future.rentersIns,
+          haircut: future.haircut,
+          subscrip: future.subscrip,
+          totalBudget,
+        };
+        updatePieChart(pieData);
+      }
+
+      // Calculate Liquid Overview (Paycheck Overview) - on button click
+      function calculateLiquidOverview() {
+        const pay =
+          parseFloat(document.getElementById("overviewPaycheck").value) || 0;
+        const studentLoans =
+          parseFloat(document.getElementById("overviewStudentLoans").value) ||
+          0;
+        const rent =
+          parseFloat(document.getElementById("overviewRent").value) || 0;
+        const helloFresh =
+          parseFloat(document.getElementById("overviewHelloFresh").value) || 0;
+        const utilities =
+          parseFloat(document.getElementById("overviewUtilities").value) || 0;
+        const carInsurance =
+          parseFloat(document.getElementById("overviewCarInsurance").value) ||
+          0;
+        const gas =
+          parseFloat(document.getElementById("overviewGas").value) || 0;
+        const tolls =
+          parseFloat(document.getElementById("overviewTolls").value) || 0;
+        const rentersIns =
+          parseFloat(document.getElementById("overviewRentersIns").value) || 0;
+        const requiredExpense =
+          studentLoans +
+          rent +
+          helloFresh +
+          utilities +
+          carInsurance +
+          gas +
+          tolls +
+          rentersIns;
+        const apple =
+          parseFloat(document.getElementById("overviewApple").value) || 0;
+        const chatGPT =
+          parseFloat(document.getElementById("overviewChatGPT").value) || 0;
+        const vpn =
+          parseFloat(document.getElementById("overviewVPN").value) || 0;
+        const farmersDog =
+          parseFloat(document.getElementById("overviewFarmersDog").value) || 0;
+        const subscriptions = apple + chatGPT + vpn + farmersDog;
+        const budgetPerDay =
+          parseFloat(document.getElementById("overviewBudgetPerDay").value) ||
+          0;
+        const miscBudget = budgetPerDay * 15;
+        const liquid = pay - (requiredExpense + subscriptions + miscBudget);
+        document.getElementById("overviewLiquidation").innerText =
+          "$" + liquid.toFixed(0);
+        document.getElementById("overviewLiquidPercentage").innerText = pay
+          ? ((liquid / pay) * 100).toFixed(0) + "%"
+          : "0%";
+        document.getElementById("overviewRequiredExpensePercentage").innerText =
+          pay ? ((requiredExpense / pay) * 100).toFixed(0) + "%" : "0%";
+        document.getElementById("overviewSubscriptionsPercentage").innerText =
+          pay ? ((subscriptions / pay) * 100).toFixed(0) + "%" : "0%";
+        document.getElementById("overviewBudgetTotal").innerText =
+          "$" + miscBudget.toFixed(0);
+        document.getElementById("overviewMiscBudgetPercentage").innerText = pay
+          ? ((miscBudget / pay) * 100).toFixed(0) + "%"
+          : "0%";
+        const overviewData = {
+          pay,
+          requiredExpense,
+          miscBudget,
+          subscriptions,
+          liquid,
+        };
+        updateBarChartOverview(overviewData);
+        updatePieChartOverview(overviewData);
+      }
+
+      /* --------- BAR CHART (Weekly Check) --------- */
+      let barChart;
+      function updateBarChart(data) {
+        const ctx = document.getElementById("barChart").getContext("2d");
+        const chartData = {
+          labels: ["Cash", "Debt", "Expenses + Budget", "Liquid"],
+          datasets: [
+            {
+              label: "Amount",
+              data: [data.cash, data.debt, data.expenses, data.liquid],
+              backgroundColor: ["#4caf50", "#f44336", "#ff9800", "#607d8b"],
+            },
+          ],
+        };
+        if (barChart) {
+          barChart.data = chartData;
+          barChart.update();
+        } else {
+          barChart = new Chart(ctx, {
+            type: "bar",
+            data: chartData,
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: { label: (context) => "$" + context.parsed.y },
+                },
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    font: { size: 8 },
+                    callback: (value) => "$" + value,
+                  },
+                },
+                x: { ticks: { font: { size: 8 } } },
+              },
+            },
+          });
+        }
+      }
+
+      /* --------- PIE CHART (Weekly Check) --------- */
+      let pieChart;
+      function updatePieChart(data) {
+        const labels = [
+          "Checking",
+          "Savings",
+          "BoA",
+          "Citi",
+          "Rent",
+          "Student Loan",
+          "Utilities",
+          "Hello Fresh",
+          "Car Insurance",
+          "Gas",
+          "Renters Ins.",
+          "Haircut",
+          "Subscrip.",
+          "Budget",
+        ];
+        const backgroundColors = [
+          "#4caf50",
+          "#81c784",
+          "#8B0000",
+          "#ff7961",
+          "#FFA500",
+          "#FFB347",
+          "#FFC04C",
+          "#FFCC66",
+          "#FFD27F",
+          "#FFD580",
+          "#FFDE80",
+          "#FFE680",
+          "#FFEB99",
+          "#90caf9",
+        ];
+        const values = [
+          data.checking,
+          data.savings,
+          data.card1,
+          data.card2,
+          data.rent,
+          data.studentLoan,
+          data.utilities,
+          data.helloFresh,
+          data.carInsurance,
+          data.gas,
+          data.rentersIns,
+          data.haircut,
+          data.subscrip,
+          data.totalBudget,
+        ];
+        const ctx = document.getElementById("pieChart").getContext("2d");
+        const chartData = {
+          labels,
+          datasets: [{ data: values, backgroundColor: backgroundColors }],
+        };
+        if (pieChart) {
+          pieChart.data = chartData;
+          pieChart.update();
+        } else {
+          pieChart = new Chart(ctx, {
+            type: "pie",
+            data: chartData,
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              layout: { padding: { right: 30 } },
+              plugins: {
+                legend: {
+                  position: "right",
+                  align: "start",
+                  labels: {
+                    boxWidth: 10,
+                    boxHeight: 10,
+                    font: { size: 8 },
+                    color: "#666",
+                  },
+                },
+                tooltip: {
+                  callbacks: {
+                    label: (context) => context.label + ": $" + context.parsed,
+                  },
+                },
+              },
+            },
+          });
+        }
+      }
+
+      /* --------- BAR CHART (Paycheck Overview) --------- */
+      let barChartOverview;
+      function updateBarChartOverview(data) {
+        const ctx = document
+          .getElementById("barChartOverview")
+          .getContext("2d");
+        const chartData = {
+          labels: [
+            "Pay",
+            "Required Expense",
+            "Misc. Budget",
+            "Subscriptions",
+            "Liquid",
+          ],
+          datasets: [
+            {
+              label: "Amount",
+              data: [
+                data.pay,
+                data.requiredExpense,
+                data.miscBudget,
+                data.subscriptions,
+                data.liquid,
+              ],
+              backgroundColor: [
+                "#4caf50",
+                "#f44336",
+                "#ff9800",
+                "#9c27b0",
+                "#607d8b",
+              ],
+            },
+          ],
+        };
+        const options = {
+          responsive: true,
+          maintainAspectRatio: true,
+          animation: { duration: barChartOverview ? 0 : 1000 },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: { label: (context) => "$" + context.parsed.y },
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { font: { size: 8 }, callback: (value) => "$" + value },
+            },
+            x: { ticks: { font: { size: 8 } } },
+          },
+        };
+        if (barChartOverview) {
+          barChartOverview.options = options;
+          barChartOverview.data = chartData;
+          barChartOverview.update();
+        } else {
+          barChartOverview = new Chart(ctx, {
+            type: "bar",
+            data: chartData,
+            options: options,
+          });
+        }
+      }
+
+      /* --------- PIE CHART (Paycheck Overview) --------- */
+      let pieChartOverview;
+      function updatePieChartOverview(data) {
+        const ctx = document
+          .getElementById("pieChartOverview")
+          .getContext("2d");
+        const labels = [
+          "Pay",
+          "Required Expense",
+          "Misc. Budget",
+          "Subscriptions",
+          "Liquid",
+        ];
+        const chartData = {
+          labels,
+          datasets: [
+            {
+              data: [
+                data.pay,
+                data.requiredExpense,
+                data.miscBudget,
+                data.subscriptions,
+                data.liquid,
+              ],
+              backgroundColor: [
+                "#4caf50",
+                "#f44336",
+                "#ff9800",
+                "#9c27b0",
+                "#607d8b",
+              ],
+            },
+          ],
+        };
+        const options = {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: pieChartOverview ? 0 : 1000 },
+          layout: { padding: { right: 30 } },
+          plugins: {
+            legend: {
+              position: "right",
+              align: "start",
+              labels: {
+                boxWidth: 10,
+                boxHeight: 10,
+                font: { size: 8 },
+                color: "#666",
+              },
+            },
+            tooltip: {
+              callbacks: {
+                label: (context) => context.label + ": $" + context.parsed,
+              },
+            },
+          },
+        };
+        if (pieChartOverview) {
+          pieChartOverview.options = options;
+          pieChartOverview.data = chartData;
+          pieChartOverview.update();
+        } else {
+          pieChartOverview = new Chart(ctx, {
+            type: "pie",
+            data: chartData,
+            options: options,
+          });
+        }
+      }
+
+      /* --------- Macro Allocations Pie Chart (Liquidation Tab) --------- */
+      let macroAllocationsPieChart;
+      function updateMacroAllocationsPieChart() {
+        const sections = [
+          {
+            label: "Roth",
+            amount:
+              parseFloat(
+                document
+                  .getElementById("investRothAmount")
+                  .innerText.replace("$", "")
+              ) || 0,
+          },
+          {
+            label: "Misc.",
+            amount:
+              parseFloat(
+                document
+                  .getElementById("investFunAmount")
+                  .innerText.replace("$", "")
+              ) || 0,
+          },
+          {
+            label: "Planned Expense",
+            amount:
+              parseFloat(
+                document
+                  .getElementById("investPlannedAmount")
+                  .innerText.replace("$", "")
+              ) || 0,
+          },
+          {
+            label: "Cash",
+            amount:
+              parseFloat(
+                document
+                  .getElementById("investCashAmount")
+                  .innerText.replace("$", "")
+              ) || 0,
+          },
+          {
+            label: "Wedding",
+            amount:
+              parseFloat(
+                document
+                  .getElementById("investWeddingAmount")
+                  .innerText.replace("$", "")
+              ) || 0,
+          },
+          {
+            label: "Down Payment",
+            amount:
+              parseFloat(
+                document
+                  .getElementById("investDownAmount")
+                  .innerText.replace("$", "")
+              ) || 0,
+          },
+          {
+            label: "Investing",
+            amount:
+              parseFloat(
+                document
+                  .getElementById("investInvestAmount")
+                  .innerText.replace("$", "")
+              ) || 0,
+          },
+        ];
+        const data = sections.map((s) => s.amount);
+        const labels = sections.map((s) => s.label);
+        const ctx = document
+          .getElementById("macroAllocationsPieChart")
+          .getContext("2d");
+        const backgroundColors = [
+          "#4caf50",
+          "#f44336",
+          "#ff9800",
+          "#9c27b0",
+          "#607d8b",
+          "#4caf50",
+          "#f44336",
+        ];
+        const chartData = {
+          labels,
+          datasets: [{ data, backgroundColor: backgroundColors }],
+        };
+        if (macroAllocationsPieChart) {
+          macroAllocationsPieChart.data = chartData;
+          macroAllocationsPieChart.update();
+        } else {
+          macroAllocationsPieChart = new Chart(ctx, {
+            type: "pie",
+            data: chartData,
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: "right", labels: { font: { size: 8 } } },
+              },
+            },
+          });
+        }
+      }
+
+      // Calculate Macro Allocations - on button click
+      function updateInvestTable() {
+        const liquid =
+          parseFloat(document.getElementById("investLiquidAmount").value) || 0;
+        const paycheck =
+          parseFloat(document.getElementById("overviewPaycheck").value) || 0;
+        const sections = [
+          {
+            percentId: "investRothPercent",
+            amountId: "investRothAmount",
+            paycheckPctId: "investRothPaycheckPercent",
+          },
+          {
+            percentId: "investFunPercent",
+            amountId: "investFunAmount",
+            paycheckPctId: "investFunPaycheckPercent",
+          },
+          {
+            percentId: "investPlannedPercent",
+            amountId: "investPlannedAmount",
+            paycheckPctId: "investPlannedPaycheckPercent",
+          },
+          {
+            percentId: "investCashPercent",
+            amountId: "investCashAmount",
+            paycheckPctId: "investCashPaycheckPercent",
+          },
+          {
+            percentId: "investWeddingPercent",
+            amountId: "investWeddingAmount",
+            paycheckPctId: "investWeddingPaycheckPercent",
+          },
+          {
+            percentId: "investDownPercent",
+            amountId: "investDownAmount",
+            paycheckPctId: "investDownPaycheckPercent",
+          },
+          {
+            percentId: "investInvestPercent",
+            amountId: "investInvestAmount",
+            paycheckPctId: "investInvestPaycheckPercent",
+          },
+        ];
+        let totalPercent = 0,
+          totalAmount = 0,
+          totalPaycheckPercent = 0;
+        sections.forEach((sec) => {
+          const p =
+            parseFloat(document.getElementById(sec.percentId).value) || 0;
+          totalPercent += p;
+          const amt = (liquid * (p / 100)).toFixed(2);
+          document.getElementById(sec.amountId).innerText = "$" + amt;
+          totalAmount += parseFloat(amt);
+          const payPct = paycheck ? ((amt / paycheck) * 100).toFixed(2) : 0;
+          document.getElementById(sec.paycheckPctId).innerText = payPct + "%";
+          totalPaycheckPercent += parseFloat(payPct);
+        });
+        document.getElementById("investTotalsPercent").innerText =
+          totalPercent.toFixed(2) + "%";
+        document.getElementById("investTotalsAmount").innerText =
+          "$" + totalAmount.toFixed(2);
+        document.getElementById("investTotalsPaycheckPercent").innerText =
+          totalPaycheckPercent.toFixed(2) + "%";
+        updateMacroAllocationsPieChart();
+      }
+
+      // SAVE HTML FUNCTION: Save current form values to the Google Sheet
+      function saveHTML() {
+        document
+          .querySelectorAll("input")
+          .forEach((input) => input.setAttribute("value", input.value));
+        const updatedHTML = document.documentElement.outerHTML;
+        const fullHTML = "<!DOCTYPE html>\n" + updatedHTML;
+        const formData = {};
+        document.querySelectorAll("input").forEach((input) => {
+          if (input.id) {
+            formData[input.id] = input.value;
+          }
+        });
+        console.log("Form data to be sent:", formData);
+        fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+          mode: "no-cors",
+        })
+          .then(() => console.log("Data sent."))
+          .catch((error) => console.error("Error:", error));
+      }
+
+      function addBudgetCheckEntry() {
+        const date = document.getElementById("budgetCheckDate").value;
+        const budget = document.getElementById("budgetCheckBudget").value;
+        const spent = document.getElementById("budgetCheckSpent").value;
+        const notes = document.getElementById("budgetCheckNotes").value;
+        if (!date || !budget || !spent) {
+          alert("Please fill in the Date, Budget, and Spent fields.");
+          return;
+        }
+        const data = {
+          Date: date,
+          Budget: budget,
+          Spent: spent,
+          Notes: notes,
+          sheet: "Sheet3",
+        };
+        console.log("Submitting Budget Check entry:", data);
+        fetch(apiUrl3, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+          mode: "no-cors",
+        })
+          .then(() => {
+            console.log("Budget Check entry sent.");
+            loadBudgetCheck();
+          })
+          .catch((error) =>
+            console.error("Error sending Budget Check data:", error)
+          );
+        document.getElementById("budgetCheckDate").value = "";
+        document.getElementById("budgetCheckBudget").value = "";
+        document.getElementById("budgetCheckSpent").value = "";
+        document.getElementById("budgetCheckNotes").value = "";
+      }
+
+      function addLiquidationLog() {
+        const liquidationNumber = document.getElementById(
+          "logLiquidationNumber"
+        ).value;
+        const totalLiquidationAmount = document.getElementById(
+          "logTotalLiquidationAmount"
+        ).value;
+        const date = document.getElementById("logDate").value;
+        const liquidationTransfer = document.getElementById(
+          "logLiquidationTransfer"
+        ).value;
+        const crypto = document.getElementById("logCrypto").value;
+        const fidelity = document.getElementById("logFidelity").value;
+        const wealthfront = document.getElementById("logWealthfront").value;
+        if (!liquidationNumber || !totalLiquidationAmount || !date) {
+          alert(
+            "Please fill in at least the Liquidation Number, Total Amount, and Date fields."
+          );
+          return;
+        }
+        const logData = {
+          "Liquidation Number": liquidationNumber,
+          "Total Liquidation Amount": totalLiquidationAmount,
+          Date: date,
+          "Liquidation Transfer": liquidationTransfer,
+          Crypto: crypto,
+          Fidelity: fidelity,
+          Wealthfront: wealthfront,
+          sheet: "Liquidation sheet",
+        };
+        fetch(apiUrl2, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(logData),
+          mode: "no-cors",
+        })
+          .then(() => {
+            console.log("Log data sent.");
+            loadLiquidationLog();
+          })
+          .catch((error) => console.error("Error sending log data:", error));
+        document.getElementById("logLiquidationNumber").value = "";
+        document.getElementById("logTotalLiquidationAmount").value = "";
+        document.getElementById("logDate").value = "";
+        document.getElementById("logLiquidationTransfer").value = "";
+        document.getElementById("logCrypto").value = "";
+        document.getElementById("logFidelity").value = "";
+        document.getElementById("logWealthfront").value = "";
+      }
+
+      // Consolidated DOMContentLoaded event
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log(
+          "DOMContentLoaded fired - calling loadLiquidationLog and loadBudgetCheck"
+        );
+        // Fetch data from apiUrl3 to populate the Budget Check table
+        fetch(apiUrl3)
+          .then((response) => response.json())
+          .then((data) => {
+            const tbody = document
+              .getElementById("budgetCheckTable")
+              .querySelector("tbody");
+            tbody.innerHTML = "";
+            data.forEach((row) => {
+              // pull the raw ISO string (or blank)
+              const rawDate = row["Date"] || "";
+              // slice off the time if present
+              const displayDate = rawDate.includes("T")
+                ? rawDate.slice(0, 10)
+                : rawDate;
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td>${displayDate}</td>
+                <td>${row["Budget"] || ""}</td>
+                <td>${row["Spent"] || ""}</td>
+                <td>${row["Notes"] || ""}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+          })
+          .catch((error) =>
+            console.error("Error fetching data from apiUrl3:", error)
+          );
+
+        // Fetch data from apiUrl2 to populate the liquidation log table
+        fetch(apiUrl2)
+          .then((response) => response.json())
+          .then((data) => {
+            const tbody = document
+              .getElementById("liquidationLogTable")
+              .querySelector("tbody");
+            tbody.innerHTML = "";
+            data.forEach((row) => {
+              // Grab the raw date string (or empty)
+              const rawDate = row["Date"] || "";
+              // If it’s an ISO string with a ‘T’, take only YYYY-MM-DD
+              const displayDate = rawDate.includes("T")
+                ? rawDate.slice(0, 10)
+                : rawDate;
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td>${row["Liquidation Number"] || ""}</td>
+                <td>${row["Total Liquidation Amount"] || ""}</td>
+                  <td>${displayDate}</td>
+                <td>${row["Liquidation Transfer"] || ""}</td>
+                <td>${row["Crypto"] || ""}</td>
+                <td>${row["Fidelity"] || ""}</td>
+                <td>${row["Wealthfront"] || ""}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+          })
+          .catch((error) =>
+            console.error("Error fetching data from apiUrl2:", error)
+          );
+
+        // Fetch data from apiUrl to populate input fields
+        fetch(apiUrl)
+          .then((res) => res.json())
+          .then((data) => {
+            for (const key in data) {
+              const input = document.getElementById(key);
+              if (!input) continue;
+
+              if (input.type === "date") {
+                // YYYY-MM-DD only
+                input.value = data[key].slice(0, 10);
+              } else {
+                input.value = data[key];
+              }
+            }
+          })
+          .catch((err) => console.error(err));
+
+        // Setup event listeners
+        document
+          .getElementById("calculateLiquidBtn")
+          .addEventListener("click", calculateLiquid);
+        document
+          .getElementById("calculateLiquidOverviewBtn")
+          .addEventListener("click", calculateLiquidOverview);
+        document
+          .getElementById("calculateInvestBtn")
+          .addEventListener("click", updateInvestTable);
+        document
+          .getElementById("addLiquidationLogBtn")
+          .addEventListener("click", addLiquidationLog);
+        document
+          .getElementById("addBudgetCheckEntryBtn")
+          .addEventListener("click", addBudgetCheckEntry);
+
+        loadLiquidationLog();
+        loadBudgetCheck(); // This should now be called and log to the console
+      });
+    </script>
+  </body>
+</html>
