@@ -142,7 +142,7 @@
         font-size: 1.2rem;
         font-weight: bold;
         letter-spacing: 1px;
-        margin: 2vh 6vw 0vh 0vw;
+        margin: 2vh 6vw 4vh 0vw;
         background: rgba(255, 255, 255, 0.15);
         border: 1px solid rgba(255, 255, 255, 0.25);
         border-radius: 16px;
@@ -172,9 +172,8 @@
       /* Tile styling */
       .tile {
         width: auto; /* Let tile fill the parent column */
-        max-width: 460px; /* Prevent from being TOO wide on huge screens */
-
-        flex: 1 1 100px; /* Helps tiles grow/shrink within row/column */
+        max-width: 90%; /* Prevent from being TOO wide on huge screens */
+        flex: 1 1 15vh; /* Helps tiles grow/shrink within row/column */
         background: rgba(255, 255, 255, 0.15);
         border: 1px solid rgba(255, 255, 255, 0.05);
         border-radius: 16px;
@@ -253,11 +252,12 @@
           padding: 8px 4px;
         }
         .tile {
+          flex: 0 1 auto !important;
           width: fit-content; /* Only as wide as content+padding */
           height: fit-content;
           max-width: 98vw;
           font-size: 0.9em;
-          padding: 0.1vh 3vw;
+          padding: 0.9vh 0.9vw;
           align-self: center;
         }
         .content-container,
@@ -291,7 +291,22 @@
           height: 100vh !important;
           border-radius: 0 !important; /* Square edges for mobile if preferred */
         }
+        #budgetCheckTile .row {
+          flex-direction: column !important;
+          align-items: stretch !important;
+          gap: 6px !important;
+        }
+        #budgetCheckTile input,
+        #budgetCheckTile button {
+          width: 100% !important;
+          box-sizing: border-box;
+        }
+        #budgetCheckTable {
+          min-width: 400px; /* So columns don't get squished */
+          font-size: 12px; /* Slightly bigger for tap targets */
+        }
       }
+
       /* Responsive tables for mobile */
       .table-container {
         width: 100%;
@@ -299,9 +314,12 @@
       }
       .chart-tile {
         align-items: flex-start;
+        width: 60%;
+        height: 100%;
       }
       .chart-tile h3 {
         width: 100%;
+        height: 100%;
         text-align: center;
       }
       /* New styling for tile titles */
@@ -353,7 +371,7 @@
       /* Table styling */
       table {
         border-collapse: collapse;
-        margin: 0 auto 4px auto;
+        margin: 0 auto 0 auto;
         width: auto;
       }
       table td,
@@ -362,7 +380,7 @@
         padding: 3px;
         text-align: center;
         color: #050000;
-        font-size: 8px;
+        font-size: 0.6rem;
       }
       th {
         background-color: rgba(255, 255, 255, 0.15);
@@ -381,7 +399,7 @@
       }
       .input-group span {
         margin-left: 2px;
-        font-size: 8px;
+        font-size: 0.6rem;
         color: #050000;
       }
       .input-group input {
@@ -389,7 +407,7 @@
         padding: 1px;
         border: 1px solid #ccc;
         border-radius: 4px;
-        font-size: 8px;
+        font-size: 0.6rem;
         text-align: right;
       }
       /* Plain input used for "days" etc. */
@@ -398,7 +416,7 @@
         padding: 2px;
         border: 1px solid #ccc;
         border-radius: 4px;
-        font-size: 8px;
+        font-size: 0.6rem;
         text-align: right;
       }
       /* Button style */
@@ -411,7 +429,7 @@
         border-radius: 20px;
         cursor: pointer;
         transition: background-color 0.3s ease, transform 0.2s ease;
-        font-size: 8px;
+        font-size: 0.6rem;
         margin-top: 4px;
       }
       button:hover {
@@ -420,14 +438,14 @@
       }
       /* Chart containers */
       .chart-container.barChart {
-        width: 300px;
-        height: 140px;
+        width: 100%;
+        height: 100%;
         margin-top: 4px;
       }
       .chart-container.pieChart {
-        width: 300px;
+        width: 100%;
         margin-top: 4px;
-        height: 290px;
+        height: 100%;
       }
       #liquidOutput {
         font-size: 0.9rem;
@@ -442,7 +460,7 @@
         justify-content: center;
         width: auto;
         flex-wrap: wrap; /* Allow stacking on small screens */
-        padding: 1em 2em;
+        padding: 0em 2em;
       }
       /* New class for vertical stacking of tiles */
       .column-stack {
@@ -464,18 +482,26 @@
       .expenses-column table {
         width: 100%;
       }
-      #budgetCheckTile,
-      #budgetCheckTile .table-container {
+      #budgetCheckTile {
         width: 100%;
         min-width: 0;
+        overflow-x: auto;
+        max-width: 600px; /* You can adjust this for desktop max width */
+        margin: 0 auto; /* center if parent is wider */
+      }
+
+      #budgetCheckTile .table-container {
+        width: 100%;
+        max-height: 180px; /* Increase as needed */
         overflow-x: auto;
       }
       /*─── Budget Check table overrides ───*/
       #budgetCheckTable {
         /* force your fixed-width layout & full-width table */
-        table-layout: flex;
-        width: 50%;
+        table-layout: fixed;
+        width: 100%;
         margin: 0 0 4px 0;
+        min-width: 500px; /* Ensures columns don't shrink on mobile */
       }
 
       /* Center-align only this table’s cells & headers */
@@ -490,7 +516,7 @@
 
       /* explicitly size each column via colgroup, or via nth-child: */
       #budgetCheckTable col:nth-child(1) {
-        width: 25%;
+        width: 50%;
       } /* Date   */
       #budgetCheckTable col:nth-child(2) {
         width: 25%;
@@ -549,6 +575,10 @@
       #liquidationLogTable td:nth-child(7) {
         width: 15%;
       } /* Wealthfront        */
+
+      .no-wrap {
+        white-space: nowrap;
+      }
     </style>
   </head>
   <body>
@@ -561,6 +591,7 @@
       <nav id="sidebar">
         <ul>
           <li id="navWeeklyCheck" class="active">Weekly Check</li>
+          <li id="navWeeklyBudget">Weekly Budget</li>
           <li id="navPaycheckOverview">Paycheck Overview</li>
           <li id="navLiquidation">Liquidation</li>
           <li id="navInvesting">Investing</li>
@@ -656,7 +687,7 @@
                   <div class="expenses-column">
                     <table>
                       <tr>
-                        <th>Expense</th>
+                        <th class="no-wrap">Expense</th>
                         <th>Amount</th>
                       </tr>
                       <tr>
@@ -673,7 +704,7 @@
                         </td>
                       </tr>
                       <tr>
-                        <td>Student Loan</td>
+                        <td class="no-wrap">Student Loan</td>
                         <td>
                           <div class="input-group">
                             <span>$</span>
@@ -712,7 +743,7 @@
                         </td>
                       </tr>
                       <tr>
-                        <td>Car Insurance</td>
+                        <td class="no-wrap">Car Insurance</td>
                         <td>
                           <div class="input-group">
                             <span>$</span>
@@ -858,74 +889,13 @@
               <!-- 4a) Row with Liquid Capital -->
               <div class="row">
                 <div class="tile">
-                  <h3>Liquid Capital</h3>
+                  <h3 class="no-wrap">Liquid Capital</h3>
                   <button id="calculateLiquidBtn">Calculate</button>
                   <h2 id="liquidOutput">$0.00</h2>
                 </div>
               </div>
               <!-- 4b) Row with Budget Check -->
-              <div class="row">
-                <div class="tile" id="budgetCheckTile" style="width: 50%">
-                  <h3>Budget Check</h3>
-                  <div
-                    class="table-container"
-                    style="height: 70px; overflow-y: auto; width: 50%"
-                  >
-                    <table id="budgetCheckTable">
-                      <colgroup>
-                        <col style="width: 80px" />
-                        <!-- Date -->
-                        <col style="width: 90px" />
-                        <!-- Budget -->
-                        <col style="width: 100px" />
-                        <!-- Spent -->
-                        <col style="width: 100px" />
-                        <!-- Notes -->
-                      </colgroup>
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Budget</th>
-                          <th>Spent</th>
-                          <th>Notes</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <!-- Rows will be populated here -->
-                      </tbody>
-                    </table>
-                  </div>
-                  <div class="row" style="margin-top: 8px; gap: 4px">
-                    <input
-                      type="date"
-                      id="budgetCheckDate"
-                      placeholder="Date"
-                      style="font-size: 8px"
-                    />
-                    <input
-                      type="number"
-                      id="budgetCheckBudget"
-                      placeholder="Budget"
-                      style="font-size: 8px"
-                    />
-                    <input
-                      type="number"
-                      id="budgetCheckSpent"
-                      placeholder="Spent"
-                      style="font-size: 8px"
-                    />
-                    <input
-                      type="text"
-                      id="budgetCheckNotes"
-                      placeholder="Notes"
-                      style="font-size: 8px"
-                    />
-                    <button id="addBudgetCheckEntryBtn" style="font-size: 8px">
-                      Add
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <div class="row"></div>
             </div>
             <!-- Right Column: Charts -->
             <div class="right-column">
@@ -944,8 +914,68 @@
             </div>
           </div>
         </div>
-
-        <!-- Paycheck Overview Section (unchanged) -->
+        <!-- Weekly Budget Section -->
+        <div id="weeklyBudgetSection" style="display: none">
+          <!-- Budget Check tile will go here -->
+          <div class="tile" id="budgetCheckTile">
+            <h3>Budget Check</h3>
+            <div class="table-container">
+              <table id="budgetCheckTable">
+                <colgroup>
+                  <col style="width: 80px" />
+                  <!-- Date -->
+                  <col style="width: 90px" />
+                  <!-- Budget -->
+                  <col style="width: 100px" />
+                  <!-- Spent -->
+                  <col style="width: 100px" />
+                  <!-- Notes -->
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Budget</th>
+                    <th>Spent</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Rows will be populated here -->
+                </tbody>
+              </table>
+            </div>
+            <div class="row" style="margin-top: 8px; gap: 4px; flex-wrap: wrap">
+              <input
+                type="date"
+                id="budgetCheckDate"
+                placeholder="Date"
+                style="font-size: 8px"
+              />
+              <input
+                type="number"
+                id="budgetCheckBudget"
+                placeholder="Budget"
+                style="font-size: 8px"
+              />
+              <input
+                type="number"
+                id="budgetCheckSpent"
+                placeholder="Spent"
+                style="font-size: 8px"
+              />
+              <input
+                type="text"
+                id="budgetCheckNotes"
+                placeholder="Notes"
+                style="font-size: 8px"
+              />
+              <button id="addBudgetCheckEntryBtn" style="font-size: 8px">
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Paycheck Overview Section -->
         <div id="paycheckOverviewSection" style="display: none">
           <div class="title-tile">Paycheck Overview</div>
           <div class="content-container">
@@ -980,7 +1010,7 @@
               <!-- Required Expense and Subscriptions/Misc. Budget -->
               <div class="row">
                 <div class="tile" style="width: 200px">
-                  <h3>Required Expense</h3>
+                  <h3 class="no-wrap">Required Expense</h3>
                   <table>
                     <tr>
                       <th>Item</th>
@@ -1246,7 +1276,6 @@
             </div>
           </div>
         </div>
-
         <!-- Liquidation Section -->
         <div id="liquidationSection" style="display: none">
           <div class="title-tile">Liquidation</div>
@@ -1499,7 +1528,6 @@
             </div>
           </div>
         </div>
-
         <!-- Investing Section (blank for now) -->
         <div id="investingSection" style="display: none">
           <div class="title-tile">Investing</div>
@@ -1524,6 +1552,7 @@
           "none";
         document.getElementById("liquidationSection").style.display = "none";
         document.getElementById("investingSection").style.display = "none";
+        document.getElementById("weeklyBudgetSection").style.display = "none";
 
         document.getElementById("navWeeklyCheck").classList.remove("active");
         document
@@ -1531,6 +1560,7 @@
           .classList.remove("active");
         document.getElementById("navLiquidation").classList.remove("active");
         document.getElementById("navInvesting").classList.remove("active");
+        document.getElementById("navWeeklyBudget").classList.remove("active");
 
         document.getElementById(sectionId).style.display = "block";
         if (sectionId === "weeklyCheckSection") {
@@ -1543,6 +1573,8 @@
           document.getElementById("navLiquidation").classList.add("active");
         } else if (sectionId === "investingSection") {
           document.getElementById("navInvesting").classList.add("active");
+        } else if (sectionId === "weeklyBudgetSection") {
+          document.getElementById("navWeeklyBudget").classList.add("active");
         }
       }
       document
@@ -1559,6 +1591,9 @@
       document
         .getElementById("navInvesting")
         .addEventListener("click", () => showSection("investingSection"));
+      document
+        .getElementById("navWeeklyBudget")
+        .addEventListener("click", () => showSection("weeklyBudgetSection"));
 
       // Calculate total budget
       function calculateBudget() {
