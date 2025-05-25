@@ -187,6 +187,24 @@
         position: relative;
         z-index: 3;
       }
+
+      .summary-tile {
+        width: auto; /* Let tile fill the parent column */
+        max-width: 90%; /* Prevent from being TOO wide on huge screens */
+        height: 10vh;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(12px);
+        padding: 1vw 1vw; /* Scales with window width */
+        margin-bottom: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 3;
+      }
       @media (max-width: 1000px) {
         .content-container {
           flex-direction: column;
@@ -305,11 +323,40 @@
           min-width: 400px; /* So columns don't get squished */
           font-size: 12px; /* Slightly bigger for tap targets */
         }
+        #wb-entry-tile,
+        #wb-txn-list-tile,
+        #wb-weekly-log-tile,
+        #wb-split-log-tile,
+        #wb-trend-tile {
+          width: 98vw;
+          max-width: 100vw;
+          min-width: 0;
+          font-size: 3vw;
+          margin: 0 auto 1.5vh auto;
+        }
+        .content-container.lower {
+          flex-direction: column;
+          gap: 2vh;
+          align-items: stretch;
+        }
+        .left-column,
+        .right-column {
+          max-width: 100vw;
+          min-width: 0;
+          width: 100%;
+          margin: 0;
+        }
+        #wbFuelGauge {
+          width: 72vw;
+          max-width: 100vw;
+          min-width: 90px;
+          height: 18vh;
+        }
       }
 
       /* Responsive tables for mobile */
       .table-container {
-        width: 100%;
+        width: fit-content;
         overflow-x: auto;
       }
       .chart-tile {
@@ -578,6 +625,88 @@
 
       .no-wrap {
         white-space: nowrap;
+      }
+
+      #wb-entry-tile,
+      #wb-txn-list-tile {
+        width: 90vw;
+        max-width: 700px; /* prevents getting too wide on large screens */
+        min-width: 280px; /* doesn't get too squished on mobile */
+        margin: 0 auto 2vh auto;
+        box-sizing: border-box;
+      }
+
+      #wb-entry-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1vw;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #wb-txn-table {
+        width: 100%;
+        min-width: 270px;
+        font-size: clamp(0.8rem, 1.2vw, 1rem);
+      }
+
+      .content-container.lower {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        gap: 3vw;
+        margin-top: 2vh;
+        width: 100%;
+      }
+
+      .left-column,
+      .right-column {
+        flex: 1 1 320px;
+        min-width: 240px;
+        max-width: 45vw;
+      }
+
+      #wb-weekly-log-tile,
+      #wb-split-log-tile,
+      #wb-trend-tile {
+        margin: 0 auto 2vh auto;
+        width: 90%;
+        min-width: 200px;
+        max-width: 32vw;
+        box-sizing: border-box;
+      }
+
+      #wb-fuel-tile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #wbFuelGauge {
+        display: block;
+        margin: 0 auto;
+        width: 38vw;
+        max-width: 220px;
+        min-width: 120px;
+        height: 16vh;
+      }
+
+      #wb-entry-tile {
+        width: 90vw;
+        max-width: 700px;
+        min-width: 270px;
+        margin: 0 auto 2vh auto;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      #wb-entry-tile h3 {
+        margin-bottom: 1vh;
+        font-size: 1.3rem;
+        font-weight: 600;
+        letter-spacing: 1.5px;
       }
     </style>
   </head>
@@ -915,6 +1044,186 @@
           </div>
         </div>
         <!-- Weekly Budget Section -->
+        <div id="weeklyBudgetSection" style="display: none">
+          <div class="title-tile">Weekly Budget Dashboard</div>
+          <!-- Top: Two Column Layout -->
+          <div class="content-container">
+            <!-- Left Column: Budget, Spent, Remaining -->
+            <div class="left-column" style="flex: 2">
+              <div class="row">
+                <div class="summary-tile" id="wb-budget-tile">
+                  <h3>Budget</h3>
+                  <div class="input-group" style="margin-top: 8px">
+                    <span style="font-size: 1.2em">$</span>
+                    <input
+                      type="number"
+                      id="weeklybudgetBudget"
+                      placeholder="Amount"
+                      style="width: 80px; font-size: 4em; margin-left: 6px"
+                    />
+                  </div>
+                </div>
+                <div class="summary-tile" id="wb-spent-tile">
+                  <h3>Spent</h3>
+                  <div id="wb-spent-amount">$0</div>
+                </div>
+                <div class="summary-tile" id="wb-remaining-tile">
+                  <h3>Remaining</h3>
+                  <div id="wb-remaining-amount">$0</div>
+                </div>
+              </div>
+            </div>
+            <!-- Right Column: Fuel Gauge Widget -->
+            <div class="right-column" style="flex: 1">
+              <div class="summary-tile" id="wb-fuel-tile">
+                <h3>Fuel Gauge</h3>
+                <!-- Placeholder for future gauge chart/canvas -->
+                <canvas
+                  id="wbFuelGauge"
+                  style="width: 100%; height: 8vh"
+                ></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Middle: Transaction Entry (full width) -->
+          <div
+            class="tile entry-tile"
+            id="wb-entry-tile"
+            style="max-width: 700px; margin: 0 auto 2vh auto"
+          >
+            <h3 style="text-align: center">Add New Transaction</h3>
+            <form id="wb-entry-form" class="row" autocomplete="off">
+              <input type="date" id="wb-entry-date" required />
+              <input
+                type="number"
+                id="wb-entry-amount"
+                placeholder="Amount"
+                min="0.01"
+                step="0.01"
+                required
+              />
+              <input
+                type="text"
+                id="wb-entry-desc"
+                placeholder="Description"
+                maxlength="30"
+              />
+              <label style="display: flex; align-items: center">
+                <input
+                  type="checkbox"
+                  id="wb-entry-split"
+                  style="margin-right: 4px"
+                />
+                Split
+              </label>
+              <button type="submit" id="wb-add-btn">Add</button>
+            </form>
+          </div>
+
+          <!-- This Week's Transactions Table/List -->
+          <div class="tile" id="wb-txn-list-tile">
+            <h3>This Week's Transactions</h3>
+            <div class="table-container">
+              <table id="wb-txn-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th>Split</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Transactions populate here -->
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td
+                      colspan="4"
+                      style="text-align: right; font-weight: bold"
+                    >
+                      Total: <span id="wb-txn-total">$0</span>
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Lower: Two Columns for Log and Trend -->
+          <div class="content-container" style="margin-top: 16px">
+            <!-- Left: Weekly Log (collapsible) -->
+            <div class="left-column" style="flex: 1">
+              <div class="tile" id="wb-weekly-log-tile">
+                <h3>
+                  Weekly Log
+                  <button id="wb-log-collapse-btn" style="float: right">
+                    ▼
+                  </button>
+                </h3>
+                <div id="wb-log-container">
+                  <table id="wb-log-table">
+                    <thead>
+                      <tr>
+                        <th>Week</th>
+                        <th>Budget</th>
+                        <th>Spent</th>
+                        <th>Net</th>
+                        <th>Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- Log rows here -->
+                    </tbody>
+                  </table>
+                </div>
+                <button id="wb-close-week-btn" style="margin-top: 8px">
+                  Close Week & Save
+                </button>
+              </div>
+
+              <!-- Collapsible Split Owed Log -->
+              <div class="tile" id="wb-split-log-tile" style="margin-top: 12px">
+                <h3>
+                  Split Owed Log
+                  <button id="wb-split-collapse-btn" style="float: right">
+                    ▼
+                  </button>
+                </h3>
+                <div id="wb-split-log-container">
+                  <table id="wb-split-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Full Amount</th>
+                        <th>Owed to Me</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- Split txns here -->
+                    </tbody>
+                  </table>
+                  <!-- For marking as paid or adding payment, future enhancement -->
+                </div>
+              </div>
+            </div>
+            <!-- Right: Trend Line Chart -->
+            <div class="right-column" style="flex: 1">
+              <div class="tile" id="wb-trend-tile">
+                <h3>Weekly Net Trend</h3>
+                <canvas
+                  id="wbTrendChart"
+                  style="width: 100%; height: 200px"
+                ></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- The below is legacy budget check, but successfully speaks to google sheets -->
         <div id="weeklyBudgetSection" style="display: none">
           <!-- Budget Check tile will go here -->
           <div class="tile" id="budgetCheckTile">
