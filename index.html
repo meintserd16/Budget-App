@@ -200,27 +200,64 @@
           flex: none;
         }
       }
+
+      /* Hide hamburger by default */
+      #menuToggle {
+        display: none;
+        position: absolute;
+        top: 18px;
+        left: 45%;
+        margin-left: 48%;
+        z-index: 999;
+        background: transparent;
+        border: none;
+        font-size: 2em;
+        cursor: pointer;
+        width: fit-content;
+      }
+
       /* Responsive: make sidebar disappear or collapse */
       @media (max-width: 700px) {
-        #sidebar {
-          display: none !important;
+        #menuToggle {
+          display: block;
         }
+        #sidebar {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 70vw;
+          max-width: 350px;
+          height: 100vh;
+          background: rgba(255, 255, 255, 0.98);
+          border-radius: 0 24px 24px 0;
+          box-shadow: 4px 0 12px rgba(0, 0, 0, 0.12);
+          transform: translateX(-100%);
+          transition: transform 0.3s cubic-bezier(0.32, 0.72, 0.36, 0.97);
+          z-index: 1001;
+          display: flex;
+          flex-direction: column;
+        }
+        #sidebar.open {
+          transform: translateX(0);
+        }
+
         #mainContent {
           margin-left: 0 !important;
           padding: 2vw 2vw !important;
         }
         .title-tile {
-          width: 100vw !important;
-          max-width: 100vw !important;
+          width: 90vw !important;
+          max-width: 90vw !important;
           font-size: 1rem;
           margin: 12px 0 8px 0;
           padding: 8px 4px;
         }
         .tile {
           width: fit-content; /* Only as wide as content+padding */
+          height: fit-content;
           max-width: 98vw;
           font-size: 0.9em;
-          padding: 2vw 3vw;
+          padding: 0.1vh 3vw;
           align-self: center;
         }
         .content-container,
@@ -237,7 +274,7 @@
           bottom: 0 !important;
           width: 100vw !important; /* Take up full window */
           min-width: 0 !important;
-          height: 100vh !important; /* Or use min-height: 100vh; */
+          max-height: 100vh !important; /* Or use min-height: 100vh; */
           margin: 0 !important;
           padding: 2vw 2vw !important; /* Or adjust as desired for inner space */
           overflow-y: auto !important; /* Allow scrolling INSIDE main content if needed */
@@ -518,6 +555,8 @@
     <div id="dashboardWrapper">
       <!-- Frosted floating rectangle -->
       <div id="frostedRectangle"></div>
+      <!-- Hamburger Button -->
+      <button id="menuToggle" aria-label="Open menu">&#9776;</button>
       <!-- Fixed Sidebar Navigation -->
       <nav id="sidebar">
         <ul>
@@ -741,6 +780,19 @@
                             <input
                               type="number"
                               id="subscrip"
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Other</td>
+                        <td>
+                          <div class="input-group">
+                            <span>$</span>
+                            <input
+                              type="number"
+                              id="otherExpense"
                               placeholder="Amount"
                             />
                           </div>
@@ -1519,7 +1571,6 @@
           "$" + totalBudget.toFixed(0);
         return totalBudget;
       }
-
       // Get future expenses as an object
       function getFutureExpenses() {
         const rent = parseFloat(document.getElementById("rent").value) || 0;
@@ -1538,6 +1589,8 @@
           parseFloat(document.getElementById("haircut").value) || 0;
         const subscrip =
           parseFloat(document.getElementById("subscrip").value) || 0;
+        const otherExpense =
+          parseFloat(document.getElementById("otherExpense").value) || 0;
         return {
           rent,
           studentLoan,
@@ -2323,6 +2376,20 @@
 
         loadLiquidationLog();
         loadBudgetCheck(); // This should now be called and log to the console
+      });
+      document.addEventListener("DOMContentLoaded", function () {
+        const menuToggle = document.getElementById("menuToggle");
+        const sidebar = document.getElementById("sidebar");
+        // Toggle sidebar
+        menuToggle.addEventListener("click", function () {
+          sidebar.classList.toggle("open");
+        });
+        // Optional: Close menu when clicking a nav item
+        sidebar.querySelectorAll("li").forEach((item) => {
+          item.addEventListener("click", () =>
+            sidebar.classList.remove("open")
+          );
+        });
       });
     </script>
   </body>
