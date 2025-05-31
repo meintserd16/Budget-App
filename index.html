@@ -57,7 +57,7 @@
         top: 3vh;
         left: 4vw;
         bottom: 3vh;
-        width: 10vw;
+        width: 12vw;
         background: rgba(255, 255, 255, 0.35);
         border: 1px solid rgba(148, 147, 147, 0.3);
         border-radius: 30px;
@@ -78,7 +78,6 @@
         font-weight: bold;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
         max-width: 100%;
       }
       #sidebar ul li.active {
@@ -352,6 +351,12 @@
           min-width: 90px;
           height: 18vh;
         }
+
+        .weeklybudgetrow1 {
+        flex-direction: column !important;
+          align-items: flex-start; /* So children don't stretch to 100% */
+          gap: 8px !important;
+      }
       }
 
       /* Responsive tables for mobile */
@@ -507,6 +512,15 @@
         justify-content: center;
         width: auto;
         flex-wrap: wrap; /* Allow stacking on small screens */
+        padding: 0em 2em;
+      }
+      .weeklybudgetrow1 {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        justify-content: center;
+        width: auto;
+         flex-wrap: wrap; /* Allow stacking on small screens */
         padding: 0em 2em;
       }
       /* New class for vertical stacking of tiles */
@@ -701,6 +715,34 @@
         font-weight: 600;
         letter-spacing: 1.5px;
       }
+
+      .tile.entry-tile {
+flex: 0 1 auto !important;
+          width: fit-content; /* Only as wide as content+padding */
+          height: fit-content;
+          max-width: 98vw;
+          font-size: 0.9em;
+          padding: 0.9vh 0.9vw;
+          align-self: center;
+}
+#wB-fuel-tile, #wb-fuel-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;  /* Horizontal center */
+  justify-content: center;  /* Vertical center, optional */
+}
+
+#wbFuelGauge {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  /* Remove width: 100% for more predictable sizing: */
+  width: 75%;
+  height: auto;
+  /* or whatever size works best visually for your design */
+}
+
+
     </style>
   </head>
   <body>
@@ -712,8 +754,8 @@
       <!-- Fixed Sidebar Navigation -->
       <nav id="sidebar">
         <ul>
-          <li id="navWeeklyCheck" class="active">Weekly Check</li>
-          <li id="navWeeklyBudget">Weekly Budget</li>
+          <li id="navWeeklyCheck">Weekly Check</li>
+          <li id="navWeeklyBudget" class="active">Weekly Budget</li>
           <li id="navPaycheckOverview">Paycheck Overview</li>
           <li id="navLiquidation">Liquidation</li>
           <li id="navInvesting">Investing</li>
@@ -1040,11 +1082,11 @@
         <div id="weeklyBudgetSection" style="display: none">
           <div class="title-tile">Weekly Budget Dashboard</div>
           <!-- Top: Two Column Layout -->
-          <div class="content-container">
+          
             <!-- Left Column: Budget, Spent, Remaining -->
-            <div class="left-column" style="flex: 2">
-              <div class="row">
-                <div class="summary-tile" id="wb-budget-tile">
+            
+              <div class="weeklybudgetrow1">
+                <div class="tile entry-tile" id="wb-budget-tile">
                   <h3>Budget</h3>
                   <div class="input-group" style="margin-top: 8px">
                     <span style="font-size: 1.2em">$</span>
@@ -1052,32 +1094,50 @@
                       type="number"
                       id="weeklybudgetBudget"
                       placeholder="Amount"
-                      style="width: 80px; font-size: 4em; margin-left: 6px"
+                      style="width: 4vw; font-size: 0.6rem; margin-left: 6px"
                     />
                   </div>
                 </div>
-                <div class="summary-tile" id="wb-spent-tile">
+                <div class="tile entry-tile" id="wb-spent-tile">
                   <h3>Spent</h3>
-                  <div id="wb-spent-amount">$0</div>
+                  <div class="input-group" style="margin-top: 8px" ;>
+                    <span style="font-size: 1.2em">$</span>
+                    <input
+                      type="number"
+                      id="weeklybudgetSpent"
+                      placeholder="Amount"
+                      style="width: 4vw; font-size: 0.6rem; margin-left: 6px"
+                      readonly
+                    />
+                  </div>
                 </div>
-                <div class="summary-tile" id="wb-remaining-tile">
+
+                <div class="tile entry-tile" id="wb-remaining-tile">
                   <h3>Remaining</h3>
-                  <div id="wb-remaining-amount">$0</div>
+                  <div class="input-group" style="margin-top: 8px">
+                    <span style="font-size: 1.2em">$</span>
+                    <input
+                      type="number"
+                      id="weeklybudgetRemaining"
+                      placeholder="Amount"
+                      style="width: 4vw; font-size: 0.6rem; margin-left: 6px"
+                      readonly
+                    />
+                  </div>
+                </div>
+                <div class="tile entry-tile" id="wb-fuel-tile">
+                  <h3>Fuel Gauge</h3>
+                  <!-- Placeholder for future gauge chart/canvas -->
+                  <canvas
+                    id="wbFuelGauge"
+                  
+                  ></canvas>
                 </div>
               </div>
             </div>
-            <!-- Right Column: Fuel Gauge Widget -->
-            <div class="right-column" style="flex: 1">
-              <div class="summary-tile" id="wb-fuel-tile">
-                <h3>Fuel Gauge</h3>
-                <!-- Placeholder for future gauge chart/canvas -->
-                <canvas
-                  id="wbFuelGauge"
-                  style="width: 100%; height: 8vh"
-                ></canvas>
-              </div>
-            </div>
-          </div>
+            
+            
+          
 
           <!-- Middle: Transaction Entry (full width) -->
           <div
@@ -1896,7 +1956,7 @@
       document
         .getElementById("navWeeklyBudget")
         .addEventListener("click", () => showSection("weeklyBudgetSection"));
-
+      showSection("weeklyBudgetSection");
       // Calculate total budget
       function calculateBudget() {
         const dailyBudget =
@@ -1908,6 +1968,118 @@
           "$" + totalBudget.toFixed(0);
         return totalBudget;
       }
+
+      function drawFuelGauge(current, max) {
+        const canvas = document.getElementById('wbFuelGauge');
+        const ctx = canvas.getContext('2d');
+        
+      const dpr = window.devicePixelRatio || 1;
+        // For crisp rendering on high-DPI screens
+      const width = canvas.width / dpr;
+      const height = canvas.height / dpr;
+      
+  
+
+  // Clear previous drawing
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+
+  // Gauge geometry
+  const cx = width / 1;
+  const cy = height * 1.5;
+  const radius = Math.min(width, height * 2) * 0.65;
+  const startAngle = Math.PI;   // Left (empty)
+  const endAngle = 0;           // Right (full)
+
+  // Draw gauge background (grey arc)
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, startAngle, endAngle, false);
+  ctx.lineWidth = 14;
+  ctx.strokeStyle = "#eee";
+  ctx.stroke();
+
+  // Draw gauge fill (blue arc proportional to remaining)
+  const percent = Math.max(0, Math.min(1, current / max));
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, startAngle, startAngle + (1 - percent) * Math.PI, false);
+  ctx.lineWidth = 14;
+  ctx.strokeStyle = "#73cfff";
+  ctx.stroke();
+
+  // Draw needle
+  const needleAngle = startAngle + (1 - percent) * Math.PI;
+  const nx = cx + Math.cos(needleAngle) * radius;
+  const ny = cy + Math.sin(needleAngle) * radius;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(nx, ny);
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#e44";
+  ctx.stroke();
+
+  
+
+  // Draw numeric remaining in center
+ // Calculate spent percentage for color
+const spent = max - current;
+const percentSpent = max > 0 ? spent / max : 0;
+let color =  "#e44"; // red
+if (percentSpent >= 0.75) color = "#44b400";       // green
+else if (percentSpent >= 0.5) color = "#ffD600"; // yellow
+else if (percentSpent >= 0.25) color = "#ff9800"; // orange
+
+// Draw numeric remaining below the gauge, color coded
+ctx.font = "bold 2rem sans-serif";
+ctx.fillStyle = color;
+ctx.textAlign = "center";
+ctx.fillText(`${current}`, cx, height + 70); 
+if (current <= 0) {
+  ctx.fillText("Empty", cx, height +70);
+} else {
+  ctx.fillText(`${current}`, cx, height + 70);
+}
+
+}
+
+// Hook up to your data loading/updating logic:
+function updateFuelGauge() {
+  const budgetInput = document.getElementById('weeklybudgetBudget').value;
+  const remainingInput = document.getElementById('weeklybudgetRemaining').value;
+  
+  // Only proceed if both are set and are not empty strings
+  if (!budgetInput || !remainingInput) return;
+  
+  const max = parseFloat(budgetInput) || 0;
+  const remaining = parseFloat(remainingInput) || 0;
+
+  // Optionally, only draw if Budget > 0 (you can adjust this)
+  if (max <= 0) return;
+
+  drawFuelGauge(remaining, max);
+}
+
+// Run when page loads and when values change
+window.addEventListener('DOMContentLoaded', updateFuelGauge);
+document.getElementById('weeklybudgetBudget').addEventListener('input', updateFuelGauge);
+document.getElementById('weeklybudgetRemaining').addEventListener('input', updateFuelGauge);
+
+
+function autoCalculateRemaining() {
+  const budget = parseFloat(document.getElementById('weeklybudgetBudget').value) || 0;
+  const spent = parseFloat(document.getElementById('weeklybudgetSpent').value) || 0;
+  const remaining = budget - spent;
+  document.getElementById('weeklybudgetRemaining').value = remaining;
+}
+
+// Listen for changes on Budget and Spent
+document.getElementById('weeklybudgetBudget').addEventListener('input', autoCalculateRemaining);
+document.getElementById('weeklybudgetSpent').addEventListener('input', autoCalculateRemaining);
+
+// Optional: recalculate on page load after data is set, or after data fetch
+window.addEventListener('DOMContentLoaded', () => {
+  // This ensures Remaining is calculated if values are preloaded
+  autoCalculateRemaining();
+});
       // Get future expenses as an object
       function getFutureExpenses() {
         const rent = parseFloat(document.getElementById("rent").value) || 0;
@@ -2691,6 +2863,9 @@
                 input.value = data[key];
               }
             }
+            // --- Custom logic for the budget tiles only ---
+    autoCalculateRemaining(); // Updates "Remaining" based on Budget & Spent
+    updateFuelGauge();        // Updates the gauge based on current inputs
           })
           .catch((err) => console.error(err));
 
