@@ -356,7 +356,9 @@
         flex-direction: column !important;
           align-items: flex-start; /* So children don't stretch to 100% */
           gap: 8px !important;
+          width: auto;
       }
+      
       }
 
       /* Responsive tables for mobile */
@@ -741,6 +743,17 @@ flex: 0 1 auto !important;
   height: auto;
   /* or whatever size works best visually for your design */
 }
+.input-group input[type="number"].wide-number {
+  width: 10ch;             /* Enough for 4 digits + some space */
+  min-width: 60px;        /* Never gets too small */
+  max-width: 100px;       /* Prevents overexpansion */
+  font-size: 1.1rem;      /* Make sure the font is readable everywhere */
+  height: 2.2em;          /* Ensures enough vertical room */
+  line-height: 2.2em;
+  padding: 2px 0px;
+  box-sizing: border-box;
+  text-align: center;     /* Or right, as you like */
+}
 
 
     </style>
@@ -1094,7 +1107,8 @@ flex: 0 1 auto !important;
                       type="number"
                       id="weeklybudgetBudget"
                       placeholder="Amount"
-                      style="width: 4vw; font-size: 0.6rem; margin-left: 6px"
+                      class="wide-number"
+                      style="font-size: 0.6rem; margin-left: 6px"
                     />
                   </div>
                 </div>
@@ -1106,7 +1120,8 @@ flex: 0 1 auto !important;
                       type="number"
                       id="weeklybudgetSpent"
                       placeholder="Amount"
-                      style="width: 4vw; font-size: 0.6rem; margin-left: 6px"
+                      class="wide-number"
+                      style="font-size: 0.6rem; margin-left: 6px"
                       readonly
                     />
                   </div>
@@ -1120,7 +1135,8 @@ flex: 0 1 auto !important;
                       type="number"
                       id="weeklybudgetRemaining"
                       placeholder="Amount"
-                      style="width: 4vw; font-size: 0.6rem; margin-left: 6px"
+                      class="wide-number"
+                      style="font-size: 0.6rem; margin-left: 6px"
                       readonly
                     />
                   </div>
@@ -2001,13 +2017,13 @@ flex: 0 1 auto !important;
   // Draw gauge fill (blue arc proportional to remaining)
   const percent = Math.max(0, Math.min(1, current / max));
   ctx.beginPath();
-  ctx.arc(cx, cy, radius, startAngle, startAngle + (1 - percent) * Math.PI, false);
+  ctx.arc(cx, cy, radius, startAngle, startAngle + percent * Math.PI, false);
   ctx.lineWidth = 14;
   ctx.strokeStyle = "#73cfff";
   ctx.stroke();
 
   // Draw needle
-  const needleAngle = startAngle + (1 - percent) * Math.PI;
+  const needleAngle = startAngle + percent * Math.PI;
   const nx = cx + Math.cos(needleAngle) * radius;
   const ny = cy + Math.sin(needleAngle) * radius;
   ctx.beginPath();
@@ -2023,20 +2039,20 @@ flex: 0 1 auto !important;
  // Calculate spent percentage for color
 const spent = max - current;
 const percentSpent = max > 0 ? spent / max : 0;
-let color =  "#e44"; // red
-if (percentSpent >= 0.75) color = "#44b400";       // green
-else if (percentSpent >= 0.5) color = "#ffD600"; // yellow
-else if (percentSpent >= 0.25) color = "#ff9800"; // orange
+let color =  "#44b400"; // green
+if (percentSpent >= 0.75) color = "#e44";       // red
+else if (percentSpent >= 0.5) color = "#ff9800"; // orange 
+else if (percentSpent >= 0.25) color = "#ffD600"; // yellow
 
 // Draw numeric remaining below the gauge, color coded
 ctx.font = "bold 2rem sans-serif";
 ctx.fillStyle = color;
 ctx.textAlign = "center";
-ctx.fillText(`${current}`, cx, height + 70); 
+
 if (current <= 0) {
   ctx.fillText("Empty", cx, height +70);
 } else {
-  ctx.fillText(`${current}`, cx, height + 70);
+  ctx.fillText(`${current}`, cx, height +70);
 }
 
 }
@@ -2052,8 +2068,7 @@ function updateFuelGauge() {
   const max = parseFloat(budgetInput) || 0;
   const remaining = parseFloat(remainingInput) || 0;
 
-  // Optionally, only draw if Budget > 0 (you can adjust this)
-  if (max <= 0) return;
+  
 
   drawFuelGauge(remaining, max);
 }
@@ -2072,8 +2087,15 @@ function autoCalculateRemaining() {
 }
 
 // Listen for changes on Budget and Spent
-document.getElementById('weeklybudgetBudget').addEventListener('input', autoCalculateRemaining);
-document.getElementById('weeklybudgetSpent').addEventListener('input', autoCalculateRemaining);
+document.getElementById('weeklybudgetBudget').addEventListener('input', () => {
+  autoCalculateRemaining();
+  updateFuelGauge();
+});
+document.getElementById('weeklybudgetSpent').addEventListener('input', () => {
+  autoCalculateRemaining();
+  updateFuelGauge();
+});
+
 
 // Optional: recalculate on page load after data is set, or after data fetch
 window.addEventListener('DOMContentLoaded', () => {
