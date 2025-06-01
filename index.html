@@ -353,12 +353,11 @@
         }
 
         .weeklybudgetrow1 {
-        flex-direction: column !important;
+          flex-direction: column !important;
           align-items: flex-start; /* So children don't stretch to 100% */
           gap: 8px !important;
           width: auto;
-      }
-      
+        }
       }
 
       /* Responsive tables for mobile */
@@ -522,7 +521,7 @@
         gap: 8px;
         justify-content: center;
         width: auto;
-         flex-wrap: wrap; /* Allow stacking on small screens */
+        flex-wrap: wrap; /* Allow stacking on small screens */
         padding: 0em 2em;
       }
       /* New class for vertical stacking of tiles */
@@ -719,43 +718,42 @@
       }
 
       .tile.entry-tile {
-flex: 0 1 auto !important;
-          width: fit-content; /* Only as wide as content+padding */
-          height: fit-content;
-          max-width: 98vw;
-          font-size: 0.9em;
-          padding: 0.9vh 0.9vw;
-          align-self: center;
-}
-#wB-fuel-tile, #wb-fuel-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;  /* Horizontal center */
-  justify-content: center;  /* Vertical center, optional */
-}
+        flex: 0 1 auto !important;
+        width: fit-content; /* Only as wide as content+padding */
+        height: fit-content;
+        max-width: 98vw;
+        font-size: 0.9em;
+        padding: 0.9vh 0.9vw;
+        align-self: center;
+      }
+      #wB-fuel-tile,
+      #wb-fuel-tile {
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Horizontal center */
+        justify-content: center; /* Vertical center, optional */
+      }
 
-#wbFuelGauge {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  /* Remove width: 100% for more predictable sizing: */
-  width: 75%;
-  height: auto;
-  /* or whatever size works best visually for your design */
-}
-.input-group input[type="number"].wide-number {
-  width: 10ch;             /* Enough for 4 digits + some space */
-  min-width: 60px;        /* Never gets too small */
-  max-width: 100px;       /* Prevents overexpansion */
-  font-size: 1.1rem;      /* Make sure the font is readable everywhere */
-  height: 2.2em;          /* Ensures enough vertical room */
-  line-height: 2.2em;
-  padding: 2px 0px;
-  box-sizing: border-box;
-  text-align: center;     /* Or right, as you like */
-}
-
-
+      #wbFuelGauge {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        /* Remove width: 100% for more predictable sizing: */
+        width: 75%;
+        height: auto;
+        /* or whatever size works best visually for your design */
+      }
+      .input-group input[type="number"].wide-number {
+        width: 10ch; /* Enough for 4 digits + some space */
+        min-width: 60px; /* Never gets too small */
+        max-width: 100px; /* Prevents overexpansion */
+        font-size: 1.1rem; /* Make sure the font is readable everywhere */
+        height: 2.2em; /* Ensures enough vertical room */
+        line-height: 2.2em;
+        padding: 2px 0px;
+        box-sizing: border-box;
+        text-align: center; /* Or right, as you like */
+      }
     </style>
   </head>
   <body>
@@ -767,8 +765,8 @@ flex: 0 1 auto !important;
       <!-- Fixed Sidebar Navigation -->
       <nav id="sidebar">
         <ul>
-          <li id="navWeeklyCheck">Weekly Check</li>
-          <li id="navWeeklyBudget" class="active">Weekly Budget</li>
+          <li id="navWeeklyCheck" class="active">Weekly Check</li>
+          <li id="navWeeklyBudget">Weekly Budget</li>
           <li id="navPaycheckOverview">Paycheck Overview</li>
           <li id="navLiquidation">Liquidation</li>
           <li id="navInvesting">Investing</li>
@@ -1095,65 +1093,58 @@ flex: 0 1 auto !important;
         <div id="weeklyBudgetSection" style="display: none">
           <div class="title-tile">Weekly Budget Dashboard</div>
           <!-- Top: Two Column Layout -->
-          
-            <!-- Left Column: Budget, Spent, Remaining -->
-            
-              <div class="weeklybudgetrow1">
-                <div class="tile entry-tile" id="wb-budget-tile">
-                  <h3>Budget</h3>
-                  <div class="input-group" style="margin-top: 8px">
-                    <span style="font-size: 1.2em">$</span>
-                    <input
-                      type="number"
-                      id="weeklybudgetBudget"
-                      placeholder="Amount"
-                      class="wide-number"
-                      style="font-size: 0.6rem; margin-left: 6px"
-                    />
-                  </div>
-                </div>
-                <div class="tile entry-tile" id="wb-spent-tile">
-                  <h3>Spent</h3>
-                  <div class="input-group" style="margin-top: 8px" ;>
-                    <span style="font-size: 1.2em">$</span>
-                    <input
-                      type="number"
-                      id="weeklybudgetSpent"
-                      placeholder="Amount"
-                      class="wide-number"
-                      style="font-size: 0.6rem; margin-left: 6px"
-                      readonly
-                    />
-                  </div>
-                </div>
 
-                <div class="tile entry-tile" id="wb-remaining-tile">
-                  <h3>Remaining</h3>
-                  <div class="input-group" style="margin-top: 8px">
-                    <span style="font-size: 1.2em">$</span>
-                    <input
-                      type="number"
-                      id="weeklybudgetRemaining"
-                      placeholder="Amount"
-                      class="wide-number"
-                      style="font-size: 0.6rem; margin-left: 6px"
-                      readonly
-                    />
-                  </div>
-                </div>
-                <div class="tile entry-tile" id="wb-fuel-tile">
-                  <h3>Fuel Gauge</h3>
-                  <!-- Placeholder for future gauge chart/canvas -->
-                  <canvas
-                    id="wbFuelGauge"
-                  
-                  ></canvas>
-                </div>
+          <!-- Left Column: Budget, Spent, Remaining -->
+
+          <div class="weeklybudgetrow1">
+            <div class="tile entry-tile" id="wb-budget-tile">
+              <h3>Budget</h3>
+              <div class="input-group" style="margin-top: 8px">
+                <span style="font-size: 1.2em">$</span>
+                <input
+                  type="number"
+                  id="weeklybudgetBudget"
+                  placeholder="Amount"
+                  class="wide-number"
+                  style="font-size: 0.6rem; margin-left: 6px"
+                />
               </div>
             </div>
-            
-            
-          
+            <div class="tile entry-tile" id="wb-spent-tile">
+              <h3>Spent</h3>
+              <div class="input-group" style="margin-top: 8px" ;>
+                <span style="font-size: 1.2em">$</span>
+                <input
+                  type="number"
+                  id="weeklybudgetSpent"
+                  placeholder="Amount"
+                  class="wide-number"
+                  style="font-size: 0.6rem; margin-left: 6px"
+                  readonly
+                />
+              </div>
+            </div>
+
+            <div class="tile entry-tile" id="wb-remaining-tile">
+              <h3>Remaining</h3>
+              <div class="input-group" style="margin-top: 8px">
+                <span style="font-size: 1.2em">$</span>
+                <input
+                  type="number"
+                  id="weeklybudgetRemaining"
+                  placeholder="Amount"
+                  class="wide-number"
+                  style="font-size: 0.6rem; margin-left: 6px"
+                  readonly
+                />
+              </div>
+            </div>
+            <div class="tile entry-tile" id="wb-fuel-tile">
+              <h3>Fuel Gauge</h3>
+              <!-- Placeholder for future gauge chart/canvas -->
+              <canvas id="wbFuelGauge"></canvas>
+            </div>
+          </div>
 
           <!-- Middle: Transaction Entry (full width) -->
           <div
@@ -1166,7 +1157,7 @@ flex: 0 1 auto !important;
               <input type="date" id="weeklybudgetNewtransactionDate" required />
               <input
                 type="number"
-                id="weeklybudgetNewtransactionAmount" 
+                id="weeklybudgetNewtransactionAmount"
                 placeholder="Amount"
                 min="0.01"
                 step="0.01"
@@ -1292,67 +1283,6 @@ flex: 0 1 auto !important;
           </div>
         </div>
 
-        <!-- The below is legacy budget check, but successfully speaks to google sheets -->
-        <div id="weeklyBudgetSection" style="display: none">
-          <!-- Budget Check tile will go here -->
-          <div class="tile" id="budgetCheckTile">
-            <h3>Budget Check</h3>
-            <div class="table-container">
-              <table id="budgetCheckTable">
-                <colgroup>
-                  <col style="width: 80px" />
-                  <!-- Date -->
-                  <col style="width: 90px" />
-                  <!-- Budget -->
-                  <col style="width: 100px" />
-                  <!-- Spent -->
-                  <col style="width: 100px" />
-                  <!-- Notes -->
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Budget</th>
-                    <th>Spent</th>
-                    <th>Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <!-- Rows will be populated here -->
-                </tbody>
-              </table>
-            </div>
-            <div class="row" style="margin-top: 8px; gap: 4px; flex-wrap: wrap">
-              <input
-                type="date"
-                id="budgetCheckDate"
-                placeholder="Date"
-                style="font-size: 8px"
-              />
-              <input
-                type="number"
-                id="budgetCheckBudget"
-                placeholder="Budget"
-                style="font-size: 8px"
-              />
-              <input
-                type="number"
-                id="budgetCheckSpent"
-                placeholder="Spent"
-                style="font-size: 8px"
-              />
-              <input
-                type="text"
-                id="budgetCheckNotes"
-                placeholder="Notes"
-                style="font-size: 8px"
-              />
-              <button id="addBudgetCheckEntryBtn" style="font-size: 8px">
-                Add
-              </button>
-            </div>
-          </div>
-        </div>
         <!-- Paycheck Overview Section -->
         <div id="paycheckOverviewSection" style="display: none">
           <div class="title-tile">Paycheck Overview</div>
@@ -1916,14 +1846,15 @@ flex: 0 1 auto !important;
     <script>
       // Set your Google Apps Script endpoint URLs
       //Google Script Version 15, 10 was last working one
-      const apiUrl =  "https://script.google.com/macros/s/AKfycbyyE6qNHhNF9zwdm_lAsxf47JYWE9etsYuEUbV_KxIXo4VjKLshBBEYHMegt9u2uJHJ/exec?sheetid=0"
-      const apiUrl2 = "https://script.google.com/macros/s/AKfycbyyE6qNHhNF9zwdm_lAsxf47JYWE9etsYuEUbV_KxIXo4VjKLshBBEYHMegt9u2uJHJ/exec?sheetid=615354426"
-       const apiUrl3 = "https://script.google.com/macros/s/AKfycbyyE6qNHhNF9zwdm_lAsxf47JYWE9etsYuEUbV_KxIXo4VjKLshBBEYHMegt9u2uJHJ/exec?sheetid=912270719"
-       const apiUrl4 = "https://script.google.com/macros/s/AKfycbyyE6qNHhNF9zwdm_lAsxf47JYWE9etsYuEUbV_KxIXo4VjKLshBBEYHMegt9u2uJHJ/exec?sheetid=417331213"
+      const apiUrl =
+        "https://script.google.com/macros/s/AKfycbyyE6qNHhNF9zwdm_lAsxf47JYWE9etsYuEUbV_KxIXo4VjKLshBBEYHMegt9u2uJHJ/exec?sheetid=0";
+      const apiUrl2 =
+        "https://script.google.com/macros/s/AKfycbyyE6qNHhNF9zwdm_lAsxf47JYWE9etsYuEUbV_KxIXo4VjKLshBBEYHMegt9u2uJHJ/exec?sheetid=615354426";
+      const apiUrl3 =
+        "https://script.google.com/macros/s/AKfycbyyE6qNHhNF9zwdm_lAsxf47JYWE9etsYuEUbV_KxIXo4VjKLshBBEYHMegt9u2uJHJ/exec?sheetid=912270719";
+      const apiUrl4 =
+        "https://script.google.com/macros/s/AKfycbyyE6qNHhNF9zwdm_lAsxf47JYWE9etsYuEUbV_KxIXo4VjKLshBBEYHMegt9u2uJHJ/exec?sheetid=417331213";
 
-       
-      
-        
       // Navigation toggling
       function showSection(sectionId) {
         document.getElementById("weeklyCheckSection").style.display = "none";
@@ -1987,122 +1918,131 @@ flex: 0 1 auto !important;
       }
 
       function drawFuelGauge(current, max) {
-        const canvas = document.getElementById('wbFuelGauge');
-        const ctx = canvas.getContext('2d');
-        
-      const dpr = window.devicePixelRatio || 1;
+        const canvas = document.getElementById("wbFuelGauge");
+        const ctx = canvas.getContext("2d");
+
+        const dpr = window.devicePixelRatio || 1;
         // For crisp rendering on high-DPI screens
-      const width = canvas.width / dpr;
-      const height = canvas.height / dpr;
-      
-  
+        const width = canvas.width / dpr;
+        const height = canvas.height / dpr;
 
-  // Clear previous drawing
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Clear previous drawing
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        // Gauge geometry
+        const cx = width / 1;
+        const cy = height * 1.5;
+        const radius = Math.min(width, height * 2) * 0.65;
+        const startAngle = Math.PI; // Left (empty)
+        const endAngle = 0; // Right (full)
 
-  // Gauge geometry
-  const cx = width / 1;
-  const cy = height * 1.5;
-  const radius = Math.min(width, height * 2) * 0.65;
-  const startAngle = Math.PI;   // Left (empty)
-  const endAngle = 0;           // Right (full)
+        // Draw gauge background (grey arc)
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, startAngle, endAngle, false);
+        ctx.lineWidth = 14;
+        ctx.strokeStyle = "#eee";
+        ctx.stroke();
 
-  // Draw gauge background (grey arc)
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius, startAngle, endAngle, false);
-  ctx.lineWidth = 14;
-  ctx.strokeStyle = "#eee";
-  ctx.stroke();
+        // Draw gauge fill (blue arc proportional to remaining)
+        const percent = Math.max(0, Math.min(1, current / max));
+        ctx.beginPath();
+        ctx.arc(
+          cx,
+          cy,
+          radius,
+          startAngle,
+          startAngle + percent * Math.PI,
+          false
+        );
+        ctx.lineWidth = 14;
+        ctx.strokeStyle = "#73cfff";
+        ctx.stroke();
 
-  // Draw gauge fill (blue arc proportional to remaining)
-  const percent = Math.max(0, Math.min(1, current / max));
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius, startAngle, startAngle + percent * Math.PI, false);
-  ctx.lineWidth = 14;
-  ctx.strokeStyle = "#73cfff";
-  ctx.stroke();
+        // Draw needle
+        const needleAngle = startAngle + percent * Math.PI;
+        const nx = cx + Math.cos(needleAngle) * radius;
+        const ny = cy + Math.sin(needleAngle) * radius;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(nx, ny);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#e44";
+        ctx.stroke();
 
-  // Draw needle
-  const needleAngle = startAngle + percent * Math.PI;
-  const nx = cx + Math.cos(needleAngle) * radius;
-  const ny = cy + Math.sin(needleAngle) * radius;
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.lineTo(nx, ny);
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = "#e44";
-  ctx.stroke();
+        // Draw numeric remaining in center
+        // Calculate spent percentage for color
+        const spent = max - current;
+        const percentSpent = max > 0 ? spent / max : 0;
+        let color = "#44b400"; // green
+        if (percentSpent >= 0.75) color = "#e44"; // red
+        else if (percentSpent >= 0.5) color = "#ff9800"; // orange
+        else if (percentSpent >= 0.25) color = "#ffD600"; // yellow
 
-  
+        // Draw numeric remaining below the gauge, color coded
+        ctx.font = "bold 2rem sans-serif";
+        ctx.fillStyle = color;
+        ctx.textAlign = "center";
 
-  // Draw numeric remaining in center
- // Calculate spent percentage for color
-const spent = max - current;
-const percentSpent = max > 0 ? spent / max : 0;
-let color =  "#44b400"; // green
-if (percentSpent >= 0.75) color = "#e44";       // red
-else if (percentSpent >= 0.5) color = "#ff9800"; // orange 
-else if (percentSpent >= 0.25) color = "#ffD600"; // yellow
+        if (current <= 0) {
+          ctx.fillText("Empty", cx, height + 70);
+        } else {
+          ctx.fillText(`${current}`, cx, height + 70);
+        }
+      }
 
-// Draw numeric remaining below the gauge, color coded
-ctx.font = "bold 2rem sans-serif";
-ctx.fillStyle = color;
-ctx.textAlign = "center";
+      // Hook up to your data loading/updating logic:
+      function updateFuelGauge() {
+        const budgetInput = document.getElementById("weeklybudgetBudget").value;
+        const remainingInput = document.getElementById(
+          "weeklybudgetRemaining"
+        ).value;
 
-if (current <= 0) {
-  ctx.fillText("Empty", cx, height +70);
-} else {
-  ctx.fillText(`${current}`, cx, height +70);
-}
+        // Only proceed if both are set and are not empty strings
+        if (!budgetInput || !remainingInput) return;
 
-}
+        const max = parseFloat(budgetInput) || 0;
+        const remaining = parseFloat(remainingInput) || 0;
 
-// Hook up to your data loading/updating logic:
-function updateFuelGauge() {
-  const budgetInput = document.getElementById('weeklybudgetBudget').value;
-  const remainingInput = document.getElementById('weeklybudgetRemaining').value;
-  
-  // Only proceed if both are set and are not empty strings
-  if (!budgetInput || !remainingInput) return;
-  
-  const max = parseFloat(budgetInput) || 0;
-  const remaining = parseFloat(remainingInput) || 0;
+        drawFuelGauge(remaining, max);
+      }
 
-  
+      // Run when page loads and when values change
+      window.addEventListener("DOMContentLoaded", updateFuelGauge);
+      document
+        .getElementById("weeklybudgetBudget")
+        .addEventListener("input", updateFuelGauge);
+      document
+        .getElementById("weeklybudgetRemaining")
+        .addEventListener("input", updateFuelGauge);
 
-  drawFuelGauge(remaining, max);
-}
+      function autoCalculateRemaining() {
+        const budget =
+          parseFloat(document.getElementById("weeklybudgetBudget").value) || 0;
+        const spent =
+          parseFloat(document.getElementById("weeklybudgetSpent").value) || 0;
+        const remaining = budget - spent;
+        document.getElementById("weeklybudgetRemaining").value = remaining;
+      }
 
-// Run when page loads and when values change
-window.addEventListener('DOMContentLoaded', updateFuelGauge);
-document.getElementById('weeklybudgetBudget').addEventListener('input', updateFuelGauge);
-document.getElementById('weeklybudgetRemaining').addEventListener('input', updateFuelGauge);
+      // Listen for changes on Budget and Spent
+      document
+        .getElementById("weeklybudgetBudget")
+        .addEventListener("input", () => {
+          autoCalculateRemaining();
+          updateFuelGauge();
+        });
+      document
+        .getElementById("weeklybudgetSpent")
+        .addEventListener("input", () => {
+          autoCalculateRemaining();
+          updateFuelGauge();
+        });
 
-
-function autoCalculateRemaining() {
-  const budget = parseFloat(document.getElementById('weeklybudgetBudget').value) || 0;
-  const spent = parseFloat(document.getElementById('weeklybudgetSpent').value) || 0;
-  const remaining = budget - spent;
-  document.getElementById('weeklybudgetRemaining').value = remaining;
-}
-
-// Listen for changes on Budget and Spent
-document.getElementById('weeklybudgetBudget').addEventListener('input', () => {
-  autoCalculateRemaining();
-  updateFuelGauge();
-});
-document.getElementById('weeklybudgetSpent').addEventListener('input', () => {
-  autoCalculateRemaining();
-  updateFuelGauge();
-});
-
-
-// Optional: recalculate on page load after data is set, or after data fetch
-window.addEventListener('DOMContentLoaded', () => {
-  // This ensures Remaining is calculated if values are preloaded
-  autoCalculateRemaining();
-});
+      // Optional: recalculate on page load after data is set, or after data fetch
+      window.addEventListener("DOMContentLoaded", () => {
+        // This ensures Remaining is calculated if values are preloaded
+        autoCalculateRemaining();
+      });
       // Get future expenses as an object
       function getFutureExpenses() {
         const rent = parseFloat(document.getElementById("rent").value) || 0;
@@ -2756,42 +2696,47 @@ window.addEventListener('DOMContentLoaded', () => {
       }
 
       function addweeklybudgetNewtransaction() {
-  const date = document.getElementById("weeklybudgetNewtransactionDate").value;
-  const amount = document.getElementById("weeklybudgetNewtransactionAmount").value;
-  const description = document.getElementById("weeklybudgetNewtransactionDescription").value;
-  const split = document.getElementById("weeklybudgetNewtransactionSplit").checked; // always use .checked for checkbox
+        const date = document.getElementById(
+          "weeklybudgetNewtransactionDate"
+        ).value;
+        const amount = document.getElementById(
+          "weeklybudgetNewtransactionAmount"
+        ).value;
+        const description = document.getElementById(
+          "weeklybudgetNewtransactionDescription"
+        ).value;
+        const split = document.getElementById(
+          "weeklybudgetNewtransactionSplit"
+        ).checked; // always use .checked for checkbox
 
-  const data = {
-    weeklybudgetNewtransactionDate: date,
-    weeklybudgetNewtransactionAmount: amount,
-    weeklybudgetNewtransactionDescription: description,
-    weeklybudgetNewtransactionSplit: split,
-    sheet: "Sheet4"
-  };
-console.log("POST payload:", data);
-  fetch(apiUrl4, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(data),
-  mode: "no-cors",
-})
-.then(() => {
-  alert("Transaction added!");
-  document.getElementById("wb-entry-form").reset();
-})
-.catch(error => {
-  alert("Error adding transaction: " + error);
-  console.error("POST error:", error);
-});
+        const data = {
+          weeklybudgetNewtransactionDate: date,
+          weeklybudgetNewtransactionAmount: amount,
+          weeklybudgetNewtransactionDescription: description,
+          weeklybudgetNewtransactionSplit: split,
+          sheet: "Sheet4",
+        };
+        console.log("POST payload:", data);
+        fetch(apiUrl4, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+          mode: "no-cors",
+        })
+          .then(() => {
+            alert("Transaction added!");
+            document.getElementById("wb-entry-form").reset();
+          })
+          .catch((error) => {
+            alert("Error adding transaction: " + error);
+            console.error("POST error:", error);
+          });
         document.getElementById("weeklybudgetNewtransactionDate").value = "";
         document.getElementById("weeklybudgetNewtransactionAmount").value = "";
-        document.getElementById("weeklybudgetNewtransactionDescription").value = "";
+        document.getElementById("weeklybudgetNewtransactionDescription").value =
+          "";
         document.getElementById("weeklybudgetNewtransactionSplit").value = "";
-}
-
-
-
-
+      }
 
       function addLiquidationLog() {
         const liquidationNumber = document.getElementById(
@@ -2848,32 +2793,39 @@ console.log("POST payload:", data);
         console.log(
           "DOMContentLoaded fired - calling loadLiquidationLog and loadBudgetCheck"
         );
-function loadWeeklyBudgetTransactions() {
-  fetch(apiUrl4)
-    .then(res => res.json())
-    .then(data => {
-      const tbody = document.getElementById("wb-txn-table").querySelector("tbody");
-      tbody.innerHTML = ""; // Clear current rows
+        function loadWeeklyBudgetTransactions() {
+          fetch(apiUrl4)
+            .then((res) => res.json())
+            .then((data) => {
+              const tbody = document
+                .getElementById("wb-txn-table")
+                .querySelector("tbody");
+              tbody.innerHTML = ""; // Clear current rows
 
-      data.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
+              data.forEach((row) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
           <td>${row["Date"] || ""}</td>
           <td>${row["Amount"] || ""}</td>
           <td>${row["Description"] || ""}</td>
           <td>${row["Split"] ? "Yes" : "No"}</td>
         `;
-        tbody.appendChild(tr);
-      });
+                tbody.appendChild(tr);
+              });
 
-      // (Optional) Recalculate the total for this week
-      const total = data.reduce((sum, row) => sum + (parseFloat(row["Amount"]) || 0), 0);
-      document.getElementById("wb-txn-total").innerText = `$${total.toFixed(2)}`;
-    })
-    .catch(error => {
-      console.error("Error loading weekly budget transactions:", error);
-    });
-}
+              // (Optional) Recalculate the total for this week
+              const total = data.reduce(
+                (sum, row) => sum + (parseFloat(row["Amount"]) || 0),
+                0
+              );
+              document.getElementById(
+                "wb-txn-total"
+              ).innerText = `$${total.toFixed(2)}`;
+            })
+            .catch((error) => {
+              console.error("Error loading weekly budget transactions:", error);
+            });
+        }
 
         // Fetch data from apiUrl4 to populate the Budget Check table
         fetch(apiUrl4)
@@ -2881,7 +2833,7 @@ function loadWeeklyBudgetTransactions() {
           .then((data) => {
             const tbody = document
               .getElementById("wb-txn-table")
-  .querySelector("tbody");
+              .querySelector("tbody");
             tbody.innerHTML = "";
             data.forEach((row) => {
               // pull the raw ISO string (or blank)
@@ -2981,14 +2933,14 @@ function loadWeeklyBudgetTransactions() {
               }
             }
             // --- Custom logic for the budget tiles only ---
-    autoCalculateRemaining(); // Updates "Remaining" based on Budget & Spent
-    updateFuelGauge();        // Updates the gauge based on current inputs
+            autoCalculateRemaining(); // Updates "Remaining" based on Budget & Spent
+            updateFuelGauge(); // Updates the gauge based on current inputs
           })
           .catch((err) => console.error(err));
 
-          window.addEventListener("DOMContentLoaded", () => {
-  loadWeeklyBudgetTransactions();
-});
+        window.addEventListener("DOMContentLoaded", () => {
+          loadWeeklyBudgetTransactions();
+        });
 
         // Setup event listeners
         document
@@ -3025,11 +2977,12 @@ function loadWeeklyBudgetTransactions() {
         });
       });
 
-     
-document.getElementById("wb-entry-form").addEventListener("submit", function(e) {
-  e.preventDefault();
-  addweeklybudgetNewtransaction();
-});
+      document
+        .getElementById("wb-entry-form")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          addweeklybudgetNewtransaction();
+        });
     </script>
   </body>
 </html>
