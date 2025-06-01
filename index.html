@@ -2020,6 +2020,7 @@
           parseFloat(document.getElementById("weeklybudgetBudget").value) || 0;
         const spent =
           parseFloat(document.getElementById("weeklybudgetSpent").value) || 0;
+
         const remaining = budget - spent;
         document.getElementById("weeklybudgetRemaining").value = remaining;
       }
@@ -2827,6 +2828,49 @@
             });
         }
 
+        function sumCurrentWeekSpent(transactions) {
+          // Get today, set to midnight
+          const now = new Date();
+          now.setHours(0, 0, 0, 0);
+
+          // Calculate this week's Monday (0 = Sunday, 1 = Monday, ...)
+          const day = now.getDay(); // Sunday=0, Monday=1,...
+          const diffToMonday = (day + 6) % 7; // e.g., Mon=1->0, Sun=0->6
+          const monday = new Date(now);
+          monday.setDate(now.getDate() - diffToMonday);
+
+          // Calculate this week's Sunday
+          const sunday = new Date(monday);
+          sunday.setDate(monday.getDate() + 6);
+
+          // Sum all transaction amounts within this week (inclusive)
+          let sum = 0;
+          transactions.forEach((row) => {
+            let dateStr = row["weeklybudgetNewtransactionDate"];
+            if (!dateStr) return;
+            // In case date includes time, strip it
+            dateStr = dateStr.slice(0, 10);
+            const txDate = new Date(dateStr + "T00:00:00");
+            if (txDate >= monday && txDate <= sunday) {
+              sum += parseFloat(row["weeklybudgetNewtransactionAmount"] || 0);
+              let sumDisplay =
+                Math.round(sum) === sum ? String(sum) : sum.toFixed(2);
+              document.getElementById("weeklybudgetSpent").value = sumDisplay;
+              if (typeof autoCalculateRemaining === "function") {
+                autoCalculateRemaining();
+              }
+            }
+          });
+
+          // Update the .value of your input
+          document.getElementById("weeklybudgetSpent").value = Math.round(sum);
+
+          // If you want, you can also call autoCalculateRemaining() if needed:
+          if (typeof autoCalculateRemaining === "function") {
+            autoCalculateRemaining();
+          }
+        }
+
         // Fetch data from apiUrl4 to populate the Budget Check table
         fetch(apiUrl4)
           .then((response) => response.json())
@@ -2851,6 +2895,7 @@
               `;
               tbody.appendChild(tr);
             });
+            sumCurrentWeekSpent(data);
           })
           .catch((error) =>
             console.error("Error fetching data from apiUrl4:", error)
