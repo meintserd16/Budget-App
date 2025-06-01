@@ -1163,10 +1163,10 @@ flex: 0 1 auto !important;
           >
             <h3 style="text-align: center">Add New Transaction</h3>
             <form id="wb-entry-form" class="row" autocomplete="off">
-              <input type="date" id="wb-entry-date" required />
+              <input type="date" id="weeklybudgetNewtransactionDate" required />
               <input
                 type="number"
-                id="wb-entry-amount"
+                id="weeklybudgetNewtransactionAmount" 
                 placeholder="Amount"
                 min="0.01"
                 step="0.01"
@@ -1174,14 +1174,14 @@ flex: 0 1 auto !important;
               />
               <input
                 type="text"
-                id="wb-entry-desc"
+                id="weeklybudgetNewtransactionDescription"
                 placeholder="Description"
                 maxlength="30"
               />
               <label style="display: flex; align-items: center">
                 <input
                   type="checkbox"
-                  id="wb-entry-split"
+                  id="weeklybudgetNewtransactionSplit"
                   style="margin-right: 4px"
                 />
                 Split
@@ -1915,14 +1915,15 @@ flex: 0 1 auto !important;
     </div>
     <script>
       // Set your Google Apps Script endpoint URLs
-      //Google Script Version 10
-      const apiUrl =
-        "https://script.google.com/macros/s/AKfycbwsJSVyzFEFV1YVuy9p4Q1s0cFMlD9ULxc2MCl7dMYPVwqKQv9Y5VGtnBfRiigR_1yk/exec?sheetid=0";
-      const apiUrl2 =
-        "https://script.google.com/macros/s/AKfycbwsJSVyzFEFV1YVuy9p4Q1s0cFMlD9ULxc2MCl7dMYPVwqKQv9Y5VGtnBfRiigR_1yk/exec?sheetid=615354426";
-      const apiUrl3 =
-        "https://script.google.com/macros/s/AKfycbwsJSVyzFEFV1YVuy9p4Q1s0cFMlD9ULxc2MCl7dMYPVwqKQv9Y5VGtnBfRiigR_1yk/exec?sheetid=912270719";
+      //Google Script Version 15, 10 was last working one
+      const apiUrl =  "https://script.google.com/macros/s/AKfycbyyE6qNHhNF9zwdm_lAsxf47JYWE9etsYuEUbV_KxIXo4VjKLshBBEYHMegt9u2uJHJ/exec?sheetid=0"
+      const apiUrl2 = "https://script.google.com/macros/s/AKfycbyyE6qNHhNF9zwdm_lAsxf47JYWE9etsYuEUbV_KxIXo4VjKLshBBEYHMegt9u2uJHJ/exec?sheetid=615354426"
+       const apiUrl3 = "https://script.google.com/macros/s/AKfycbyyE6qNHhNF9zwdm_lAsxf47JYWE9etsYuEUbV_KxIXo4VjKLshBBEYHMegt9u2uJHJ/exec?sheetid=912270719"
+       const apiUrl4 = "https://script.google.com/macros/s/AKfycbyyE6qNHhNF9zwdm_lAsxf47JYWE9etsYuEUbV_KxIXo4VjKLshBBEYHMegt9u2uJHJ/exec?sheetid=417331213"
 
+       
+      
+        
       // Navigation toggling
       function showSection(sectionId) {
         document.getElementById("weeklyCheckSection").style.display = "none";
@@ -2754,6 +2755,44 @@ window.addEventListener('DOMContentLoaded', () => {
         document.getElementById("budgetCheckNotes").value = "";
       }
 
+      function addweeklybudgetNewtransaction() {
+  const date = document.getElementById("weeklybudgetNewtransactionDate").value;
+  const amount = document.getElementById("weeklybudgetNewtransactionAmount").value;
+  const description = document.getElementById("weeklybudgetNewtransactionDescription").value;
+  const split = document.getElementById("weeklybudgetNewtransactionSplit").checked; // always use .checked for checkbox
+
+  const data = {
+    weeklybudgetNewtransactionDate: date,
+    weeklybudgetNewtransactionAmount: amount,
+    weeklybudgetNewtransactionDescription: description,
+    weeklybudgetNewtransactionSplit: split,
+    sheet: "Sheet4"
+  };
+console.log("POST payload:", data);
+  fetch(apiUrl4, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(data),
+  mode: "no-cors",
+})
+.then(() => {
+  alert("Transaction added!");
+  document.getElementById("wb-entry-form").reset();
+})
+.catch(error => {
+  alert("Error adding transaction: " + error);
+  console.error("POST error:", error);
+});
+        document.getElementById("weeklybudgetNewtransactionDate").value = "";
+        document.getElementById("weeklybudgetNewtransactionAmount").value = "";
+        document.getElementById("weeklybudgetNewtransactionDescription").value = "";
+        document.getElementById("weeklybudgetNewtransactionSplit").value = "";
+}
+
+
+
+
+
       function addLiquidationLog() {
         const liquidationNumber = document.getElementById(
           "logLiquidationNumber"
@@ -2809,6 +2848,62 @@ window.addEventListener('DOMContentLoaded', () => {
         console.log(
           "DOMContentLoaded fired - calling loadLiquidationLog and loadBudgetCheck"
         );
+function loadWeeklyBudgetTransactions() {
+  fetch(apiUrl4)
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.getElementById("wb-txn-table").querySelector("tbody");
+      tbody.innerHTML = ""; // Clear current rows
+
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row["Date"] || ""}</td>
+          <td>${row["Amount"] || ""}</td>
+          <td>${row["Description"] || ""}</td>
+          <td>${row["Split"] ? "Yes" : "No"}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // (Optional) Recalculate the total for this week
+      const total = data.reduce((sum, row) => sum + (parseFloat(row["Amount"]) || 0), 0);
+      document.getElementById("wb-txn-total").innerText = `$${total.toFixed(2)}`;
+    })
+    .catch(error => {
+      console.error("Error loading weekly budget transactions:", error);
+    });
+}
+
+        // Fetch data from apiUrl4 to populate the Budget Check table
+        fetch(apiUrl4)
+          .then((response) => response.json())
+          .then((data) => {
+            const tbody = document
+              .getElementById("wb-txn-table")
+  .querySelector("tbody");
+            tbody.innerHTML = "";
+            data.forEach((row) => {
+              // pull the raw ISO string (or blank)
+              const rawDate = row["weeklybudgetNewtransactionDate"] || "";
+              // slice off the time if present
+              const displayDate = rawDate.includes("T")
+                ? rawDate.slice(0, 10)
+                : rawDate;
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td>${displayDate}</td>
+                <td>${row["weeklybudgetNewtransactionAmount"] || ""}</td>
+                <td>${row["weeklybudgetNewtransactionDescription"] || ""}</td>
+                <td>${row["weeklybudgetNewtransactionSplit"] || ""}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+          })
+          .catch((error) =>
+            console.error("Error fetching data from apiUrl4:", error)
+          );
+
         // Fetch data from apiUrl3 to populate the Budget Check table
         fetch(apiUrl3)
           .then((response) => response.json())
@@ -2891,6 +2986,10 @@ window.addEventListener('DOMContentLoaded', () => {
           })
           .catch((err) => console.error(err));
 
+          window.addEventListener("DOMContentLoaded", () => {
+  loadWeeklyBudgetTransactions();
+});
+
         // Setup event listeners
         document
           .getElementById("calculateLiquidBtn")
@@ -2925,6 +3024,12 @@ window.addEventListener('DOMContentLoaded', () => {
           );
         });
       });
+
+     
+document.getElementById("wb-entry-form").addEventListener("submit", function(e) {
+  e.preventDefault();
+  addweeklybudgetNewtransaction();
+});
     </script>
   </body>
 </html>
