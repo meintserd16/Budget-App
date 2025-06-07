@@ -754,6 +754,19 @@
         box-sizing: border-box;
         text-align: center; /* Or right, as you like */
       }
+
+      #wb-txn-list-tile .table-container {
+        max-height: 25vh; /* or whatever height you want */
+        overflow-y: auto;
+        position: relative;
+      }
+
+      #wb-txn-table thead th {
+        position: sticky;
+        top: 0;
+        background-color: rgba(248, 249, 250, 1);
+        z-index: 2;
+      }
     </style>
   </head>
   <body>
@@ -1197,16 +1210,6 @@
                 <tbody>
                   <!-- Transactions populate here -->
                 </tbody>
-                <tfoot>
-                  <tr>
-                    <td
-                      colspan="4"
-                      style="text-align: right; font-weight: bold"
-                    >
-                      Total: <span id="wb-txn-total">$0</span>
-                    </td>
-                  </tr>
-                </tfoot>
               </table>
             </div>
           </div>
@@ -2695,7 +2698,58 @@
         document.getElementById("budgetCheckSpent").value = "";
         document.getElementById("budgetCheckNotes").value = "";
       }
+      function loadWeeklyBudgetTransactions() {
+        fetch(apiUrl4)
+          .then((res) => res.json())
+          .then((data) => {
+            const tbody = document
+              .getElementById("wb-txn-table")
+              .querySelector("tbody");
+            //tbody.innerHTML = ""; // Clear current rows
 
+            data.forEach((row) => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+          <td>${formatDayOfWeek(row["Date"])}</td>
+          <td>${row["Amount"] || ""}</td>
+          <td>${row["Description"] || ""}</td>
+          <td>${isTruthy(row["Split"]) ? "Yes" : "No"}</td>
+        `;
+              tbody.appendChild(tr);
+            });
+
+            // (Optional) Recalculate the total for this week
+            const total = data.reduce(
+              (sum, row) => sum + (parseFloat(row["Amount"]) || 0),
+              0
+            );
+            document.getElementById(
+              "wb-txn-total"
+            ).innerText = `$${total.toFixed(2)}`;
+          })
+          .catch((error) => {
+            console.error("Error loading weekly budget transactions:", error);
+          });
+      }
+      function formatDayOfWeek(dateStr) {
+        if (!dateStr) return "";
+
+        // Split YYYY-MM-DD manually to prevent UTC shifting
+        const [year, month, day] = dateStr.split("-").map(Number);
+
+        // JS months are 0-indexed, so subtract 1 from month
+        const localDate = new Date(year, month - 1, day);
+
+        return localDate.toLocaleDateString("en-US", { weekday: "long" });
+      }
+      function isTruthy(value) {
+        return (
+          value === true ||
+          value === "TRUE" ||
+          value === "Yes" ||
+          value === "yes"
+        );
+      }
       function addweeklybudgetNewtransaction() {
         const date = document.getElementById(
           "weeklybudgetNewtransactionDate"
@@ -2727,6 +2781,10 @@
           .then(() => {
             alert("Transaction added!");
             document.getElementById("wb-entry-form").reset();
+            setTimeout(() => {
+              loadWeeklyBudgetTransactions();
+              sumCurrentWeekSpent(data);
+            }, 9200); // Wait 1.2 seconds before fetching new data
           })
           .catch((error) => {
             alert("Error adding transaction: " + error);
@@ -2794,39 +2852,6 @@
         console.log(
           "DOMContentLoaded fired - calling loadLiquidationLog and loadBudgetCheck"
         );
-        function loadWeeklyBudgetTransactions() {
-          fetch(apiUrl4)
-            .then((res) => res.json())
-            .then((data) => {
-              const tbody = document
-                .getElementById("wb-txn-table")
-                .querySelector("tbody");
-              tbody.innerHTML = ""; // Clear current rows
-
-              data.forEach((row) => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-          <td>${row["Date"] || ""}</td>
-          <td>${row["Amount"] || ""}</td>
-          <td>${row["Description"] || ""}</td>
-          <td>${row["Split"] ? "Yes" : "No"}</td>
-        `;
-                tbody.appendChild(tr);
-              });
-
-              // (Optional) Recalculate the total for this week
-              const total = data.reduce(
-                (sum, row) => sum + (parseFloat(row["Amount"]) || 0),
-                0
-              );
-              document.getElementById(
-                "wb-txn-total"
-              ).innerText = `$${total.toFixed(2)}`;
-            })
-            .catch((error) => {
-              console.error("Error loading weekly budget transactions:", error);
-            });
-        }
 
         function sumCurrentWeekSpent(transactions) {
           // Get today, set to midnight
@@ -2843,6 +2868,12 @@
           const sunday = new Date(monday);
           sunday.setDate(monday.getDate() + 6);
 
+          // Reset table before repopulating
+          const tbody = document
+            .getElementById("wb-txn-table")
+            .querySelector("tbody");
+          tbody.innerHTML = "";
+
           // Sum all transaction amounts within this week (inclusive)
           let sum = 0;
           transactions.forEach((row) => {
@@ -2852,13 +2883,33 @@
             dateStr = dateStr.slice(0, 10);
             const txDate = new Date(dateStr + "T00:00:00");
             if (txDate >= monday && txDate <= sunday) {
-              sum += parseFloat(row["weeklybudgetNewtransactionAmount"] || 0);
-              let sumDisplay =
-                Math.round(sum) === sum ? String(sum) : sum.toFixed(2);
-              document.getElementById("weeklybudgetSpent").value = sumDisplay;
-              if (typeof autoCalculateRemaining === "function") {
-                autoCalculateRemaining();
-              }
+              const amt =
+                parseFloat(row["weeklybudgetNewtransactionAmount"]) || 0;
+
+              const isSplit =
+                row["weeklybudgetNewtransactionSplit"] === true ||
+                row["weeklybudgetNewtransactionSplit"] === "TRUE" ||
+                row["weeklybudgetNewtransactionSplit"] === "true";
+
+              // Count split as half
+              sum += isSplit ? amt / 2 : amt;
+
+              // ✅ Add row to table
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td>${formatDayOfWeek(dateStr)}</td>
+                <td>${amt.toFixed(2)}</td>
+                <td>${row["weeklybudgetNewtransactionDescription"] || ""}</td>
+                <td>${isSplit ? "Yes" : "No"}</td>
+              `;
+              tbody.appendChild(tr);
+            }
+            const sumDisplay =
+              Math.round(sum) === sum ? String(sum) : sum.toFixed(2);
+            document.getElementById("weeklybudgetSpent").value = sumDisplay;
+
+            if (typeof autoCalculateRemaining === "function") {
+              autoCalculateRemaining();
             }
           });
 
@@ -2982,10 +3033,6 @@
             updateFuelGauge(); // Updates the gauge based on current inputs
           })
           .catch((err) => console.error(err));
-
-        window.addEventListener("DOMContentLoaded", () => {
-          loadWeeklyBudgetTransactions();
-        });
 
         // Setup event listeners
         document
