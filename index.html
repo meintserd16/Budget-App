@@ -2705,20 +2705,19 @@
             const tbody = document
               .getElementById("wb-txn-table")
               .querySelector("tbody");
-            //tbody.innerHTML = ""; // Clear current rows
+            tbody.innerHTML = ""; // Clear current rows
 
             data.forEach((row) => {
               const tr = document.createElement("tr");
               tr.innerHTML = `
-          <td>${formatDayOfWeek(row["Date"])}</td>
+          <td>${row["Date"] || ""}</td>
           <td>${row["Amount"] || ""}</td>
           <td>${row["Description"] || ""}</td>
-          <td>${isTruthy(row["Split"]) ? "Yes" : "No"}</td>
+          <td>${row["Split"] ? "Yes" : "No"}</td>
         `;
               tbody.appendChild(tr);
             });
 
-            // (Optional) Recalculate the total for this week
             const total = data.reduce(
               (sum, row) => sum + (parseFloat(row["Amount"]) || 0),
               0
@@ -2731,16 +2730,13 @@
             console.error("Error loading weekly budget transactions:", error);
           });
       }
+
       function formatDayOfWeek(dateStr) {
-        if (!dateStr) return "";
-
-        // Split YYYY-MM-DD manually to prevent UTC shifting
         const [year, month, day] = dateStr.split("-").map(Number);
-
-        // JS months are 0-indexed, so subtract 1 from month
-        const localDate = new Date(year, month - 1, day);
-
-        return localDate.toLocaleDateString("en-US", { weekday: "long" });
+        const date = new Date(year, month - 1, day);
+        return isNaN(date)
+          ? ""
+          : date.toLocaleDateString("en-US", { weekday: "long" });
       }
       function isTruthy(value) {
         return (
