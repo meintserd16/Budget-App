@@ -644,8 +644,8 @@
 
       #wb-entry-tile,
       #wb-txn-list-tile {
-        width: 90vw;
-        max-width: 700px; /* prevents getting too wide on large screens */
+        max-width: 32vw;
+
         min-width: 280px; /* doesn't get too squished on mobile */
         margin: 0 auto 2vh auto;
         box-sizing: border-box;
@@ -761,11 +761,30 @@
         position: relative;
       }
 
+      #wb-split-log-container {
+        max-height: 25vh; /* or whatever height you want */
+        overflow-y: auto;
+        position: relative;
+      }
+
       #wb-txn-table thead th {
         position: sticky;
         top: 0;
         background-color: rgba(248, 249, 250, 1);
         z-index: 2;
+      }
+
+      #wb-split-table th,
+      #wb-split-table td {
+        text-align: left;
+        padding: 6px 10px;
+      }
+      #wb-split-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      #wb-split-table th {
+        background-color: #f5f5f5;
       }
     </style>
   </head>
@@ -1218,7 +1237,7 @@
           <div class="content-container" style="margin-top: 16px">
             <!-- Left: Weekly Log (collapsible) -->
             <div class="left-column" style="flex: 1">
-              <div class="tile" id="wb-weekly-log-tile">
+              <!-- <div class="tile" id="wb-weekly-log-tile">
                 <h3>
                   Weekly Log
                   <button id="wb-log-collapse-btn" style="float: right">
@@ -1237,23 +1256,18 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <!-- Log rows here -->
+                      
                     </tbody>
                   </table>
                 </div>
                 <button id="wb-close-week-btn" style="margin-top: 8px">
                   Close Week & Save
                 </button>
-              </div>
+              </div> -->
 
               <!-- Collapsible Split Owed Log -->
               <div class="tile" id="wb-split-log-tile" style="margin-top: 12px">
-                <h3>
-                  Split Owed Log
-                  <button id="wb-split-collapse-btn" style="float: right">
-                    ▼
-                  </button>
-                </h3>
+                <h3>Split Log</h3>
                 <div id="wb-split-log-container">
                   <table id="wb-split-table">
                     <thead>
@@ -1261,20 +1275,30 @@
                         <th>Date</th>
                         <th>Description</th>
                         <th>Full Amount</th>
-                        <th>Owed to Me</th>
-                        <th>Status</th>
+                        <th>Owed</th>
                       </tr>
                     </thead>
                     <tbody>
                       <!-- Split txns here -->
                     </tbody>
+                    <tfoot>
+                      <tr>
+                        <td
+                          colspan="3"
+                          style="text-align: right; font-weight: bold"
+                        >
+                          Total Owed:
+                        </td>
+                        <td id="wb-split-total">$0.00</td>
+                      </tr>
+                    </tfoot>
                   </table>
                   <!-- For marking as paid or adding payment, future enhancement -->
                 </div>
               </div>
             </div>
             <!-- Right: Trend Line Chart -->
-            <div class="right-column" style="flex: 1">
+            <!-- <div class="right-column" style="flex: 1">
               <div class="tile" id="wb-trend-tile">
                 <h3>Weekly Net Trend</h3>
                 <canvas
@@ -1282,7 +1306,7 @@
                   style="width: 100%; height: 200px"
                 ></canvas>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
 
@@ -1848,7 +1872,7 @@
     </div>
     <script>
       // Set your Google Apps Script endpoint URLs
-      //Google Script Version 15, 10 was last working one
+      //Google Script Version 16 was last working one
       const apiUrl =
         "https://script.google.com/macros/s/AKfycbyyE6qNHhNF9zwdm_lAsxf47JYWE9etsYuEUbV_KxIXo4VjKLshBBEYHMegt9u2uJHJ/exec?sheetid=0";
       const apiUrl2 =
@@ -2573,6 +2597,23 @@
         }
       }
 
+      function updateSplitTotal() {
+        let total = 0;
+        const splitTable = document.getElementById("wb-split-table");
+        // Loop through tbody rows
+        Array.from(splitTable.querySelectorAll("tbody tr")).forEach((row) => {
+          // Owed column is the 4th (index 3)
+          const owedCell = row.cells[3];
+          if (owedCell) {
+            // Remove $ and commas, parse as float
+            const val = parseFloat(owedCell.innerText.replace(/[$,]/g, ""));
+            if (!isNaN(val)) total += val;
+          }
+        });
+        document.getElementById("wb-split-total").innerText =
+          "$" + total.toFixed(2);
+      }
+
       // Calculate Macro Allocations - on button click
       function updateInvestTable() {
         const liquid =
@@ -2702,12 +2743,22 @@
         fetch(apiUrl4)
           .then((res) => res.json())
           .then((data) => {
-            const tbody = document
+            // Populate main transaction table
+            const txnTbody = document
               .getElementById("wb-txn-table")
               .querySelector("tbody");
-            tbody.innerHTML = ""; // Clear current rows
+            txnTbody.innerHTML = "";
+
+            // Populate split table
+            const splitTbody = document
+              .getElementById("wb-split-table")
+              .querySelector("tbody");
+            splitTbody.innerHTML = "";
+
+            let total = 0;
 
             data.forEach((row) => {
+              // Add to transaction table
               const tr = document.createElement("tr");
               tr.innerHTML = `
           <td>${row["Date"] || ""}</td>
@@ -2715,13 +2766,25 @@
           <td>${row["Description"] || ""}</td>
           <td>${row["Split"] ? "Yes" : "No"}</td>
         `;
-              tbody.appendChild(tr);
+              txnTbody.appendChild(tr);
+
+              // If it's a split transaction, add to split table
+              if (row["Split"]) {
+                const splitTr = document.createElement("tr");
+                splitTr.innerHTML = `
+            <td>${row["Date"] || ""}</td>
+            <td>${row["Description"] || ""}</td>
+            <td>${parseFloat(row["Amount"]).toFixed(2) || "0.00"}</td>
+            <td>${(parseFloat(row["Amount"]) / 2).toFixed(2) || "0.00"}</td>
+            <td>Owed</td>
+          `;
+                splitTbody.appendChild(splitTr);
+              }
+
+              // Running total for all transactions
+              total += parseFloat(row["Amount"]) || 0;
             });
 
-            const total = data.reduce(
-              (sum, row) => sum + (parseFloat(row["Amount"]) || 0),
-              0
-            );
             document.getElementById(
               "wb-txn-total"
             ).innerText = `$${total.toFixed(2)}`;
@@ -2738,6 +2801,32 @@
           ? ""
           : date.toLocaleDateString("en-US", { weekday: "long" });
       }
+      function formatMonthDay(dateStr) {
+        if (!dateStr) return "";
+        // Use only the date part before the T
+        let datePart = dateStr.split("T")[0];
+        const [year, month, day] = datePart.split("-");
+        if (!year || !month || !day) return dateStr;
+        const m = parseInt(month, 10);
+        const d = parseInt(day, 10);
+        if (isNaN(m) || isNaN(d)) return dateStr;
+        const monthNames = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
+        return `${monthNames[m - 1]} ${d}`;
+      }
+
       function isTruthy(value) {
         return (
           value === true ||
@@ -2765,6 +2854,7 @@
           weeklybudgetNewtransactionAmount: amount,
           weeklybudgetNewtransactionDescription: description,
           weeklybudgetNewtransactionSplit: split,
+          weeklybudgetSplitOwedPaid: split ? false : "", // Only set for splits, blank for others
           sheet: "Sheet4",
         };
         console.log("POST payload:", data);
@@ -2773,19 +2863,17 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
           mode: "no-cors",
-        })
-          .then(() => {
-            alert("Transaction added!");
-            document.getElementById("wb-entry-form").reset();
-            setTimeout(() => {
-              loadWeeklyBudgetTransactions();
-              sumCurrentWeekSpent(data);
-            }, 9200); // Wait 1.2 seconds before fetching new data
-          })
-          .catch((error) => {
-            alert("Error adding transaction: " + error);
-            console.error("POST error:", error);
-          });
+        }).then(() => {
+          alert("Transaction added!");
+          document.getElementById("wb-entry-form").reset();
+
+          setTimeout(() => {
+            location.reload();
+            //loadWeeklyBudgetTransactions();
+            //sumCurrentWeekSpent(data);
+          }, 2500); // Wait 1.2 seconds before fetching new data
+        });
+
         document.getElementById("weeklybudgetNewtransactionDate").value = "";
         document.getElementById("weeklybudgetNewtransactionAmount").value = "";
         document.getElementById("weeklybudgetNewtransactionDescription").value =
@@ -2841,6 +2929,23 @@
         document.getElementById("logCrypto").value = "";
         document.getElementById("logFidelity").value = "";
         document.getElementById("logWealthfront").value = "";
+      }
+
+      function markSplitAsPaid(rowIndex) {
+        console.log("MarkSplitAsPaid called with rowIndex:", rowIndex);
+        fetch(apiUrl4, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          mode: "no-cors",
+          body: JSON.stringify({
+            action: "updateField",
+            rowIndex: rowIndex, // zero-based index into data array!
+            field: "weeklybudgetSplitOwedPaid",
+            value: true,
+            sheet: "Sheet3", // or whatever your split log sheet is called
+          }),
+        });
+        location.reload();
       }
 
       // Consolidated DOMContentLoaded event
@@ -2922,27 +3027,66 @@
         fetch(apiUrl4)
           .then((response) => response.json())
           .then((data) => {
-            const tbody = document
+            // --- Main Transaction Table ---
+            const txnTbody = document
               .getElementById("wb-txn-table")
               .querySelector("tbody");
-            tbody.innerHTML = "";
-            data.forEach((row) => {
-              // pull the raw ISO string (or blank)
+            txnTbody.innerHTML = "";
+
+            // --- Split Log Table ---
+            const splitTbody = document
+              .getElementById("wb-split-table")
+              .querySelector("tbody");
+            splitTbody.innerHTML = "";
+
+            data.forEach((row, index) => {
               const rawDate = row["weeklybudgetNewtransactionDate"] || "";
-              // slice off the time if present
+
               const displayDate = rawDate.includes("T")
                 ? rawDate.slice(0, 10)
                 : rawDate;
+              console.log(
+                "DEBUG DATE FORMAT",
+                "rawDate:",
+                rawDate,
+                "formatted:",
+                formatMonthDay(rawDate)
+              );
+
+              // Populate wb-txn-table
               const tr = document.createElement("tr");
               tr.innerHTML = `
-                <td>${displayDate}</td>
-                <td>${row["weeklybudgetNewtransactionAmount"] || ""}</td>
-                <td>${row["weeklybudgetNewtransactionDescription"] || ""}</td>
-                <td>${row["weeklybudgetNewtransactionSplit"] || ""}</td>
-              `;
-              tbody.appendChild(tr);
+        <td>${formatMonthDay(rawDate)}</td>
+        <td>${row["weeklybudgetNewtransactionAmount"] || ""}</td>
+        <td>${row["weeklybudgetNewtransactionDescription"] || ""}</td>
+        <td>${row["weeklybudgetNewtransactionSplit"] ? "Yes" : "No"}</td>
+      `;
+              txnTbody.appendChild(tr);
+
+              // Populate wb-split-table if applicable
+              if (
+                row["weeklybudgetNewtransactionSplit"] === true &&
+                row["weeklybudgetSplitOwedPaid"] === false
+              ) {
+                const splitTr = document.createElement("tr");
+                splitTr.innerHTML = `
+          <td>${formatMonthDay(rawDate)}</td>
+          <td>${row["weeklybudgetNewtransactionDescription"] || ""}</td>
+          <td>$${parseFloat(row["weeklybudgetNewtransactionAmount"]).toFixed(
+            2
+          )}</td>
+          <td>$${(
+            parseFloat(row["weeklybudgetNewtransactionAmount"]) / 2
+          ).toFixed(2)}</td>
+          <td><button onclick="markSplitAsPaid(${index})">Mark Paid</button></td>
+        `;
+                splitTbody.appendChild(splitTr);
+              }
             });
-            sumCurrentWeekSpent(data);
+
+            updateSplitTotal();
+
+            sumCurrentWeekSpent(data); // still works
           })
           .catch((error) =>
             console.error("Error fetching data from apiUrl4:", error)
