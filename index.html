@@ -244,11 +244,19 @@
           width: fit-content; /* Only as wide as content+padding */
           max-width: 98vw;
           font-size: 0.7em; /* shrink font on mobile */
-          padding: 4px 6px; /* tighter cells */
+          border: none;
+          margin: 0;
+          border: none;
         }
 
-        #wb-split-log-tile {
-          width: 98vw;
+        #wb-split-table th {
+          z-index: 8;
+          margin-top: -10px;
+          box-shadow: 0 2px 2px -5px rgba(60, 60, 60, 0.12), 0 -5px 0 0 #fff;
+        }
+        #wb-split-table thead {
+          margin: 0;
+          border: none;
         }
 
         #sidebar {
@@ -284,7 +292,7 @@
         }
         .tile {
           flex: 0 1 auto !important;
-          width: fit-content; /* Only as wide as content+padding */
+
           height: fit-content;
           max-width: 98vw;
           font-size: 0.9em;
@@ -339,13 +347,13 @@
         #wb-entry-tile,
         #wb-txn-list-tile,
         #wb-weekly-log-tile,
-        #wb-split-log-tile,
         #wb-trend-tile {
-          width: 98vw;
+          width: 80vw;
           max-width: 100vw;
           min-width: 0;
           font-size: 3vw;
           margin: 0 auto 1.5vh auto;
+          overflow-y: auto;
         }
         .content-container.lower {
           flex-direction: column;
@@ -372,33 +380,56 @@
           gap: 8px !important;
           width: auto;
         }
-        .split-log-tile {
-          width: 98vw;
-          max-width: 100vw;
-          min-width: 0;
-          margin: 0 auto 1.5vh auto;
-          padding: 12px 4px;
-          overflow-x: auto;
-          overflow-y: auto;
-          height: fit-content;
-        }
-      }
 
-      .split-log-tile {
-        background: #fff;
-        border-radius: 16px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        padding: 18px 14px;
-        margin-bottom: 24px;
-        height: fit-content;
-        overflow-x: auto;
-        overflow-y: auto;
-        position: relative;
-        width: 90%;
-        max-width: 600px; /* or whatever you like on desktop */
-        min-width: 200px;
-        margin-left: auto;
-        margin-right: auto;
+        #wb-split-log-tile,
+        .split-log-tile {
+          width: 90vw !important;
+          max-width: 95vw !important;
+          min-width: 0 !important;
+          align-self: stretch !important; /* <--- This is key! */
+          margin-left: auto !important;
+          margin-right: auto !important;
+          overflow-y: auto;
+          height: 50vh;
+        }
+        .split-log-tile .table-container {
+          width: 100% !important;
+          overflow-x: auto !important;
+          overflow-y: auto !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+
+        #wb-split-table {
+          width: 100% !important;
+          min-width: 270px !important;
+          border-collapse: collapse;
+          box-shadow: none;
+          margin: 0;
+        }
+
+        .weeklybudgetrow1 {
+          display: flex !important;
+          flex-direction: row !important;
+          justify-content: space-between !important;
+          align-items: stretch !important;
+          gap: 2vw !important;
+          width: 100% !important;
+        }
+        .weeklybudgetrow1 .tile.entry-tile {
+          flex: 1 1 0 !important;
+          min-width: 0 !important;
+          margin: 0 !important;
+          padding: 1vh 1vw !important;
+          box-sizing: border-box !important;
+          max-width: unset !important;
+          width: unset !important;
+          /* Remove any float or display:block */
+          float: none !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+        }
       }
 
       /* Responsive tables for mobile */
@@ -424,6 +455,7 @@
         letter-spacing: 1.5px;
         color: #65656c;
         margin-bottom: 0.1rem;
+
         text-align: center;
       }
       .tile h3::after {
@@ -459,7 +491,7 @@
       h3 {
         text-align: center;
         color: #050000;
-        margin-bottom: 6px;
+        margin-bottom: 0.2rem;
         font-size: 0.8rem;
       }
       /* Table styling */
@@ -724,6 +756,8 @@
         min-width: 200px;
         max-width: 32vw;
         box-sizing: border-box;
+        overflow-y: auto;
+        height: 50vh;
       }
 
       #wb-fuel-tile {
@@ -774,6 +808,9 @@
         flex-direction: column;
         align-items: center; /* Horizontal center */
         justify-content: center; /* Vertical center, optional */
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 2vh;
       }
 
       #wbFuelGauge {
@@ -1219,18 +1256,18 @@
                 />
               </div>
             </div>
-            <div class="tile entry-tile" id="wb-fuel-tile">
-              <h3>Fuel Gauge</h3>
-              <!-- Placeholder for future gauge chart/canvas -->
-              <canvas id="wbFuelGauge"></canvas>
-            </div>
+          </div>
+          <div class="tile entry-tile" id="wb-fuel-tile">
+            <h3>Fuel Gauge</h3>
+            <!-- Placeholder for future gauge chart/canvas -->
+            <canvas id="wbFuelGauge"></canvas>
           </div>
 
           <!-- Middle: Transaction Entry (full width) -->
           <div
             class="tile entry-tile"
             id="wb-entry-tile"
-            style="max-width: 700px; margin: 0 auto 2vh auto"
+            style="max-width: 45vw; margin: 0 auto 2vh auto"
           >
             <h3 style="text-align: center">Add New Transaction</h3>
             <form id="wb-entry-form" class="row" autocomplete="off">
@@ -1262,7 +1299,11 @@
           </div>
 
           <!-- This Week's Transactions Table/List -->
-          <div class="tile" id="wb-txn-list-tile">
+          <div
+            class="tile"
+            id="wb-txn-list-tile"
+            style="max-width: 35vw; margin: 0 auto 2vh auto"
+          >
             <h3>This Week's Transactions</h3>
             <div class="table-container">
               <table id="wb-txn-table">
@@ -1282,10 +1323,10 @@
           </div>
 
           <!-- Lower: Two Columns for Log and Trend -->
-          <div class="content-container" style="margin-top: 16px">
-            <!-- Left: Weekly Log (collapsible) -->
-            <div class="left-column" style="flex: 1">
-              <!-- <div class="tile" id="wb-weekly-log-tile">
+
+          <!-- Left: Weekly Log (collapsible) -->
+
+          <!-- <div class="tile" id="wb-weekly-log-tile">
                 <h3>
                   Weekly Log
                   <button id="wb-log-collapse-btn" style="float: right">
@@ -1313,44 +1354,41 @@
                 </button>
               </div> -->
 
-              <!-- Collapsible Split Owed Log -->
-              <div
-                class="split-log-tile"
-                id="wb-split-log-tile"
-                style="margin-top: 12px"
-              >
-                <h3>Split Log</h3>
-                <div class="split-log-table-scroll">
-                  <table id="wb-split-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Description</th>
-                        <th>Full Amount</th>
-                        <th>Owed</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <!-- Split txns here -->
-                    </tbody>
-                    <tfoot>
-                      <tr>
-                        <td
-                          colspan="3"
-                          style="text-align: right; font-weight: bold"
-                        >
-                          Total Owed:
-                        </td>
-                        <td id="wb-split-total">$0.00</td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                  <!-- For marking as paid or adding payment, future enhancement -->
-                </div>
-              </div>
+          <!-- Collapsible Split Owed Log -->
+          <div class="tile split-log-tile" id="wb-split-log-tile">
+            <h3>Split Log</h3>
+            <div class="table-container">
+              <table id="wb-split-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Full Amount</th>
+                    <th>Owed</th>
+                    <th>Paid</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Split txns here -->
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td
+                      colspan="3"
+                      style="text-align: right; font-weight: bold"
+                    >
+                      Total Owed:
+                    </td>
+                    <td id="wb-split-total">$0.00</td>
+                  </tr>
+                </tfoot>
+              </table>
+              <!-- For marking as paid or adding payment, future enhancement -->
             </div>
-            <!-- Right: Trend Line Chart -->
-            <!-- <div class="right-column" style="flex: 1">
+          </div>
+
+          <!-- Right: Trend Line Chart -->
+          <!-- <div class="right-column" style="flex: 1">
               <div class="tile" id="wb-trend-tile">
                 <h3>Weekly Net Trend</h3>
                 <canvas
@@ -1359,7 +1397,6 @@
                 ></canvas>
               </div>
             </div> -->
-          </div>
         </div>
 
         <!-- Paycheck Overview Section -->
